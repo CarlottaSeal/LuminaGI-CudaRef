@@ -50,22 +50,23 @@ Hardware: RTX 4080 Laptop (SM 8.9, 58 SMs, 12 GB).
 | Render kernel, full GI (256 spp, 2 bounces) | **8.7 s** |
 | Image diff (PSNR / SSIM / heatmap) | 1.5 s |
 
-Current numbers against LuminaGI screenshot (same scene, 1.1M tris):
+Current numbers against LuminaGI screenshot (same scene, 1.1M tris, 64 spp, 2 bounces):
 
-| Version | PSNR | SSIM | MAD |
-|---|--:|--:|--:|
-| V1: direct only, no textures | 13.4 dB | 0.168 | 40.6 |
-| V2: + diffuse textures | 13.0 dB | 0.153 | 43.3 |
-| V3: + indirect, 256 spp | 12.7 dB | **0.329** | 48.2 |
+| Metric | Value |
+|---|--:|
+| PSNR | **20.5 dB** |
+| SSIM | **0.569** |
+| Mean abs diff | 17.1 / 255 |
 
-PSNR stays low because LuminaGI's GI output and this brute-force reference have
-*different systematic biases* (LuminaGI has an ambient term, specific tonemap,
-etc.). The project isn't trying to match LuminaGI pixel-for-pixel — it's measuring
-how far LuminaGI's approximation drifts from physically-correct ground truth.
+Remaining gap is systematic: LuminaGI has an ambient term, normal-map detail,
+and a specific tonemap this reference doesn't model. That's intentional — the
+point is physically-correct ground truth, not a pixel clone of the engine.
 
-The **SSIM doubling** (V1 → V3) is the real signal: structural similarity goes
-up as the reference gets closer to physical correctness, which is the expected
-direction.
+The diff pipeline has already caught one silent bug: `Scene::DumpToJSON` was
+double-applying the mesh transform because `MeshObject::GetWorldMatrix()`
+already includes it. Symptom was "all meshes look untransformed" in the
+reference but not in the engine — exactly the kind of divergence a pixel
+diff surfaces immediately. Fix took PSNR from 12.7 dB to 20.5 dB.
 
 ## Build
 
