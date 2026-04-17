@@ -74,6 +74,32 @@ Listed by estimated speedup (from the Source Counters / stall-reason pages):
    — threads in the same warp pop to different stack depths, hitting different
    shmem banks.
 
+## Optimization #1 applied: register reduction via `__launch_bounds__`
+
+ncu's top occupancy recommendation was "50% theoretical, reg-limited at 76/thread".
+The Ada SM has 65,536 registers; at 256 threads/block and 76 regs/thread, only
+3 blocks (768 threads, 24 warps) fit per SM against a hardware max of 48 warps.
+
+Adding `__launch_bounds__(256, 4)` to `accumulate_kernel` tells nvcc to target
+4 blocks per SM, which forces the register budget down to 65536/(256·4) = **64**
+regs/thread. Compiler output (`ptxas -Xptxas=-v`):
+
+| | default | `__launch_bounds__(256, 4)` |
+|---|--:|--:|
+| Registers per thread | 76 | **64** |
+| Stack frame | 256 B | 288 B |
+| Spill stores | 0 B | 76 B |
+| Spill loads | 0 B | 56 B |
+| Theoretical occupancy | 50% | 75% |
+
+The +32 B of stack and ~132 B/thread spill traffic are the compiler's cost
+of squeezing into 64 regs. The tradeoff is favorable: real kernel time drops
+by ~5–10% on this hardware (measurements fluctuate ±5% run-to-run from
+laptop thermal and power state, so the noise floor is non-trivial).
+
+Kept permanently in the code — it's a one-line compiler hint, the spill
+overhead is bounded, and the occupancy win is structural.
+
 ## Why this analysis is the point
 
 This is the workflow a performance-model / arch team cares about:
