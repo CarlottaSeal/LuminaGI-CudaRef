@@ -100,6 +100,34 @@ laptop thermal and power state, so the noise floor is non-trivial).
 Kept permanently in the code — it's a one-line compiler hint, the spill
 overhead is bounded, and the occupancy win is structural.
 
+### Post-fix ncu metrics
+
+Reprofiled with the same `--set basic --launch-count 1` invocation. Raw
+report: `accumulate_lb4.ncu-rep`. Full text: `nsight_compute_report_lb4.txt`.
+
+| Metric | Before (76 regs) | After (64 regs + LB) | Δ |
+|---|--:|--:|--:|
+| Registers / thread | 76 | 64 | -16% |
+| Theoretical occupancy | 50.0% | 66.7% | +17 pp |
+| Achieved occupancy | 46.6% | 61.8% | +15 pp (+33% more active warps) |
+| Block Limit (regs) | 3 / SM | 4 / SM | +33% |
+| L2 Cache Throughput | 90.8% | **93.4%** | +2.6 pp |
+| DRAM Throughput | 7.2% | 9.7% | +2.5 pp |
+| Compute (SM) Throughput | 61.4% | 53.2% | −8 pp |
+
+The picture after the fix is consistent and informative: *more active warps →
+more concurrent memory requests → L2 even more saturated*. SM throughput
+dropped because the same total compute is now spread across more warps that
+each individually stall more on memory. The kernel didn't become *less* efficient
+— the bottleneck just surfaced more clearly as L2 bandwidth.
+
+Theoretical occupancy stopped at 66.7% rather than the register-math-optimal
+75% because the new limiter is **shared memory per block** (10.2 KB × 4 blocks
+= 40.8 KB per SM). If occupancy mattered more than it does here, the next
+step would be shrinking the BVH shmem cache or eliminating it entirely.
+Since the kernel is already L2-bound, the real next optimization is reducing
+L2 traffic via ray coalescence — not chasing more occupancy.
+
 ## Why this analysis is the point
 
 This is the workflow a performance-model / arch team cares about:

@@ -1,0 +1,78 @@
+[51832] cuda_ref.exe@127.0.0.1
+  accumulate_kernel(DeviceScene, CameraGPU, float *, int, int, int) (108, 54, 1)x(16, 16, 1), Context 1, Stream 7, Device 0, CC 8.9
+    Section: GPU Speed Of Light Throughput
+    ----------------------- ----------- --------------
+    Metric Name             Metric Unit   Metric Value
+    ----------------------- ----------- --------------
+    DRAM Frequency                  Ghz           8.83
+    SM Frequency                    Ghz           2.06
+    Elapsed Cycles                cycle    845,354,579
+    Memory Throughput                 %          93.43
+    DRAM Throughput                   %           9.73
+    Duration                         ms         409.87
+    L1/TEX Cache Throughput           %          70.20
+    L2 Cache Throughput               %          93.43
+    SM Active Cycles              cycle 837,192,257.16
+    Compute (SM) Throughput           %          53.23
+    ----------------------- ----------- --------------
+
+    INF   This workload is utilizing greater than 80.0% of the available compute or memory performance of this device.  
+          To further improve performance, work will likely need to be shifted from the most utilized to another unit.   
+          Start by analyzing L2 in the Memory Workload Analysis section.                                                
+
+    Section: Launch Statistics
+    -------------------------------- --------------- ---------------
+    Metric Name                          Metric Unit    Metric Value
+    -------------------------------- --------------- ---------------
+    Block Size                                                   256
+    Function Cache Configuration                     CachePreferNone
+    Grid Size                                                  5,832
+    Registers Per Thread             register/thread              64
+    Shared Memory Configuration Size           Kbyte           16.38
+    Driver Shared Memory Per Block       Kbyte/block            1.02
+    Dynamic Shared Memory Per Block       byte/block               0
+    Static Shared Memory Per Block        byte/block               0
+    # SMs                                         SM              58
+    Stack Size                                                 1,024
+    Threads                                   thread       1,492,992
+    # TPCs                                                        29
+    Enabled TPC IDs                                              all
+    Uses Green Context                                             0
+    Waves Per SM                                               25.14
+    -------------------------------- --------------- ---------------
+
+    Section: Occupancy
+    ------------------------------- ----------- ------------
+    Metric Name                     Metric Unit Metric Value
+    ------------------------------- ----------- ------------
+    Block Limit SM                        block           24
+    Block Limit Registers                 block            4
+    Block Limit Shared Mem                block           16
+    Block Limit Warps                     block            6
+    Theoretical Active Warps per SM        warp           32
+    Theoretical Occupancy                     %        66.67
+    Achieved Occupancy                        %        61.78
+    Achieved Active Warps Per SM           warp        29.65
+    ------------------------------- ----------- ------------
+
+    OPT   Est. Local Speedup: 33.33%                                                                                    
+          The 8.00 theoretical warps per scheduler this kernel can issue according to its occupancy are below the       
+          hardware maximum of 12. This kernel's theoretical occupancy (66.7%) is limited by the number of required      
+          registers.                                                                                                    
+
+    Section: GPU and Memory Workload Distribution
+    -------------------------- ----------- ---------------
+    Metric Name                Metric Unit    Metric Value
+    -------------------------- ----------- ---------------
+    Average DRAM Active Cycles       cycle     352,043,776
+    Total DRAM Elapsed Cycles        cycle  21,718,516,736
+    Average L1 Active Cycles         cycle  837,192,257.16
+    Total L1 Elapsed Cycles          cycle  49,015,657,958
+    Average L2 Active Cycles         cycle  765,994,375.62
+    Total L2 Elapsed Cycles          cycle  18,404,673,600
+    Average SM Active Cycles         cycle  837,192,257.16
+    Total SM Elapsed Cycles          cycle  49,015,657,958
+    Average SMSP Active Cycles       cycle  836,661,241.37
+    Total SMSP Elapsed Cycles        cycle 196,062,631,832
+    -------------------------- ----------- ---------------
+
