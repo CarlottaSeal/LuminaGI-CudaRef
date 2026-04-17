@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "camera": {
+    "pos": [0.0, -5.0, 2.0],
+    "camera_to_world": [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,-5,2,1],
+    "fov_y_deg": 60.0,
+    "aspect": 1.777778,
+    "near": 0.1,
+    "far": 1000.0,
+    "image_width": 1920,
+    "image_height": 1080
+  },
+  "sun": {
+    "direction": [1.0, -1.0, -1.0],
+    "color": [1.0, 1.0, 0.9],
+    "intensity": 0.8
+  },
+  "lights": [
+    {"type": "directional", "direction": [1,-1,-1], "color": [0.7,0.7,0.86], "intensity": 0.82},
+    {"type": "point", "pos": [11,-0.5,1.4], "color": [1,1,0.9], "intensity": 0.8, "radius": 5.0}
+  ],
+  "materials": [
+    {"albedo": [0.8, 0.8, 0.8], "emissive": [0,0,0]},
+    {"albedo": [0.8, 0.8, 0.8], "emissive": [0,0,0], "diffuse_tex": "Data/Models/stone.png"}
+  ],
+  "triangles": [
+    {"v":[[0,0,0],[1,0,0],[0,1,0]], "n":[[0,0,1],[0,0,1],[0,0,1]], "uv":[[0,0],[1,0],[0,1]], "mat":0},
+    {"v":[[-2,-2,0],[2,-2,0],[0,2,5]], "n":[[0,0,1],[0,0,1],[0,0,1]], "uv":[[0,0],[1,0],[0.5,1]], "mat":1}
+  ]
+}

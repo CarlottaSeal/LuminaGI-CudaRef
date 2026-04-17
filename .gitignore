@@ -1,0 +1,12 @@
+build/
+out/
+output/
+*.obj
+!scenes/*.obj
+*.pdb
+*.exe
+*.ilk
+.vs/
+.vscode/
+CMakeSettings.json
+
