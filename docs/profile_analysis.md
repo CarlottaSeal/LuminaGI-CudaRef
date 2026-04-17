@@ -128,6 +128,32 @@ step would be shrinking the BVH shmem cache or eliminating it entirely.
 Since the kernel is already L2-bound, the real next optimization is reducing
 L2 traffic via ray coalescence — not chasing more occupancy.
 
+## SASS instruction mix (cuobjdump)
+
+Dumping `accumulate_kernel` with `cuobjdump --dump-sass build/bin/cuda_ref.exe`
+produces 1,560 SM 8.9 instructions. Histogram of the top opcodes:
+
+| Instruction class | Count | % |
+|---|--:|--:|
+| FFMA / FMUL / FADD / FMNMX / MUFU.RCP (FP math) | ~460 | ~30% |
+| LDG.E (global loads) | 85 | 5.4% |
+| **BSSY / BSYNC (warp convergence barriers)** | **134** | **8.6%** |
+| STL (spill stores) | 32 | 2.1% |
+| CALL.REL.NOINC | 35 | 2.2% |
+| MUFU.RCP (reciprocal SFU) | 28 | 1.8% |
+| IMAD / IADD3 / LOP3 (integer) | ~200 | ~13% |
+| BRA / FSETP / ISETP (branches + predicates) | ~120 | ~8% |
+
+Full dump: `kernel.sass.txt`.
+
+The 8.6% BSSY/BSYNC slice is the clearest hardware-visible symptom of warp
+divergence: every non-uniform branch emits a convergence barrier on Ada, so
+1,560 instructions include 134 pure sync ops. Branch Efficiency of 83.6%
+(ncu) and 4.5 M divergent branches per kernel invocation corroborate this.
+Low LDG count (5.4%) is misleading — memory instructions are "fat" in
+cycles, so a small count can still saturate L2 bandwidth, which is what
+ncu shows.
+
 ## Why this analysis is the point
 
 This is the workflow a performance-model / arch team cares about:
