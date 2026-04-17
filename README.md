@@ -141,7 +141,7 @@ third_party/
 ## Nsight Compute profile (RTX 4080, Ada Lovelace SM 8.9)
 
 Full analysis: [`docs/profile_analysis.md`](docs/profile_analysis.md). Raw
-report: `output/profile/accumulate.ncu-rep` (open in `ncu-ui`).
+report: [`docs/accumulate.ncu-rep`](docs/accumulate.ncu-rep) (open in `ncu-ui`).
 
 Top-line numbers for `accumulate_kernel`:
 
