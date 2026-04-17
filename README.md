@@ -138,6 +138,26 @@ third_party/
 - [ ] Variance-aware accumulation / adaptive sampling
 - [ ] HDR Reinhard tonemap + proper sRGB encode
 
+## Performance notes
+
+A BFS relayout + `__shared__` cache of the top 255 BVH nodes (top 8 levels)
+is implemented behind `-DBVH_USE_SHMEM`. A/B benchmark on the test scene
+(64 spp, 2 bounces, 3 runs each): **3336 ms off, 3343 ms on — essentially zero
+difference**.
+
+Why it didn't help:
+- RTX 4080 has ~40 MB L2 cache. The top BVH levels are permanent L2 residents
+  under path-tracing workloads, so a manual shmem cache duplicates what L2
+  already does for free.
+- The kernel is compute-bound on ray-triangle intersection, `cosf`/`sinf`/`sqrtf`
+  in hemisphere sampling, and RNG — not memory-bound on BVH loads.
+- Path tracing has high warp divergence after the first bounce; neighboring
+  pixels don't traverse the same nodes coherently, which weakens the spatial
+  locality a shmem cache relies on.
+
+Kept in the tree as a toggle because "implemented and measured to not help"
+is a better answer than "didn't try".
+
 ## Notes on the engine side
 
 Three changes to LuminaGI / Engine to make the dump work:

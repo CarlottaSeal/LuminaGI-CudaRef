@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdio>
 #include <limits>
+#include <queue>
 
 namespace
 {
@@ -118,6 +119,48 @@ static int build_recursive(BuildCtx& c, int first, int last, int bit)
     return idx;
 }
 
+// After build, reorder nodes in BFS order so the first 255 occupy the top 8
+// levels of the tree. The traversal kernel caches this prefix in shared memory.
+static void relayout_bfs(Bvh& bvh)
+{
+    if (bvh.nodes.empty()) return;
+    const int n = (int)bvh.nodes.size();
+    std::vector<int> oldToNew(n, -1);
+    std::vector<int> bfsOrder;
+    bfsOrder.reserve(n);
+
+    std::queue<int> q;
+    q.push(bvh.rootIdx);
+    oldToNew[bvh.rootIdx] = 0;
+    while (!q.empty())
+    {
+        int oi = q.front(); q.pop();
+        bfsOrder.push_back(oi);
+        const BvhNode& node = bvh.nodes[oi];
+        if (node.triCount == 0)
+        {
+            oldToNew[node.left]  = (int)bfsOrder.size() + (int)q.size();
+            q.push(node.left);
+            oldToNew[node.right] = (int)bfsOrder.size() + (int)q.size();
+            q.push(node.right);
+        }
+    }
+
+    std::vector<BvhNode> reordered(n);
+    for (int ni = 0; ni < n; ++ni)
+    {
+        BvhNode nn = bvh.nodes[bfsOrder[ni]];
+        if (nn.triCount == 0)
+        {
+            nn.left  = oldToNew[nn.left];
+            nn.right = oldToNew[nn.right];
+        }
+        reordered[ni] = nn;
+    }
+    bvh.nodes   = std::move(reordered);
+    bvh.rootIdx = 0;
+}
+
 void BuildBVH(Scene& scene, Bvh& out)
 {
     const int N = (int)scene.triangles.size();
@@ -163,4 +206,6 @@ void BuildBVH(Scene& scene, Bvh& out)
     out.nodes.reserve(2 * N);
     BuildCtx ctx{ out.nodes, scene, mortonSorted.data() };
     out.rootIdx = build_recursive(ctx, 0, N, 29);
+
+    relayout_bfs(out);
 }

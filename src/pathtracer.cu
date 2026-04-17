@@ -36,6 +36,23 @@ struct DeviceScene
     DirectionalLight      sun;
 };
 
+// Top 255 nodes (= 8 full levels) are cached in __shared__ per block.
+// BuildBVH does a BFS relayout so indices [0, kShmemBvhNodes) are the top levels.
+//
+// We read individual fields through explicit if/else rather than a ternary on
+// pointers, because mixing __shared__ and __global__ pointers via ?: forces
+// nvcc into the generic address space — loads then go through a runtime
+// space check and run noticeably slower than address-specific loads.
+constexpr int kShmemBvhNodes = 255;
+
+#ifdef BVH_USE_SHMEM
+#define FETCH_BVH(dst, i) \
+    do { if ((i) < kShmemBvhNodes) dst = s_top[i]; else dst = s.nodes[i]; } while (0)
+#else
+#define FETCH_BVH(dst, i) \
+    do { dst = s.nodes[i]; (void)s_top; } while (0)
+#endif
+
 struct CameraGPU
 {
     vec3  pos;
@@ -93,7 +110,8 @@ __device__ bool ray_tri(const Ray& r, const Triangle& t, float tmax, float& outT
     return true;
 }
 
-__device__ int traverse_closest(const DeviceScene& s, const Ray& r, float tmax,
+__device__ int traverse_closest(const DeviceScene& s, const BvhNode* s_top,
+                                const Ray& r, float tmax,
                                 float& outT, vec3& outN, float& outU, float& outV)
 {
     constexpr int kStackSize = 64;
@@ -108,7 +126,8 @@ __device__ int traverse_closest(const DeviceScene& s, const Ray& r, float tmax,
     while (sp > 0)
     {
         int ni = stack[--sp];
-        const BvhNode& n = s.nodes[ni];
+        BvhNode n;
+        FETCH_BVH(n, ni);
         float tEnter;
         if (!ray_aabb(r, n.bbMin, n.bbMax, bestT, tEnter)) continue;
 
@@ -124,13 +143,10 @@ __device__ int traverse_closest(const DeviceScene& s, const Ray& r, float tmax,
                 }
             }
         }
-        else
+        else if (sp + 2 <= kStackSize)
         {
-            if (sp + 2 <= kStackSize)
-            {
-                stack[sp++] = n.left;
-                stack[sp++] = n.right;
-            }
+            stack[sp++] = n.left;
+            stack[sp++] = n.right;
         }
     }
 
@@ -147,8 +163,8 @@ __device__ int traverse_closest(const DeviceScene& s, const Ray& r, float tmax,
     return bestTri;
 }
 
-// Any-hit shadow ray.
-__device__ bool traverse_occluded(const DeviceScene& s, const Ray& r, float tmax)
+__device__ bool traverse_occluded(const DeviceScene& s, const BvhNode* s_top,
+                                  const Ray& r, float tmax)
 {
     int stack[64];
     int sp = 0;
@@ -156,7 +172,8 @@ __device__ bool traverse_occluded(const DeviceScene& s, const Ray& r, float tmax
     while (sp > 0)
     {
         int ni = stack[--sp];
-        const BvhNode& n = s.nodes[ni];
+        BvhNode n;
+        FETCH_BVH(n, ni);
         float tEnter;
         if (!ray_aabb(r, n.bbMin, n.bbMax, tmax, tEnter)) continue;
 
@@ -214,7 +231,7 @@ __device__ vec3 sample_cos_hemi(vec3 N, uint32_t& rng)
     return normalize(vadd(vadd(vmul(T, x), vmul(B, y)), vmul(N, z)));
 }
 
-__device__ vec3 shade_direct(const DeviceScene& s, vec3 P, vec3 N, vec3 albedo)
+__device__ vec3 shade_direct(const DeviceScene& s, const BvhNode* s_top, vec3 P, vec3 N, vec3 albedo)
 {
     constexpr float kShadowBias = 1e-3f;
     vec3 color = v3(0, 0, 0);
@@ -227,7 +244,7 @@ __device__ vec3 shade_direct(const DeviceScene& s, vec3 P, vec3 N, vec3 albedo)
         if (ndotl > 0.0f)
         {
             Ray shadow = make_ray(vadd(P, vmul(N, kShadowBias)), toLight);
-            if (!traverse_occluded(s, shadow, 1e30f))
+            if (!traverse_occluded(s, s_top, shadow, 1e30f))
             {
                 float I = s.sun.intensity * ndotl;
                 color = vadd(color, vhad(albedo, vmul(vfrom(s.sun.color), I)));
@@ -245,7 +262,7 @@ __device__ vec3 shade_direct(const DeviceScene& s, vec3 P, vec3 N, vec3 albedo)
         if (ndotl <= 0.0f || dist >= L.radius * 3.0f) continue;
 
         Ray shadow = make_ray(vadd(P, vmul(N, kShadowBias)), toLight);
-        if (traverse_occluded(s, shadow, dist - kShadowBias)) continue;
+        if (traverse_occluded(s, s_top, shadow, dist - kShadowBias)) continue;
 
         // Soft falloff: smoothstep(radius, 0, d) — like LuminaGI's point light attenuation
         float r = L.radius;
@@ -279,7 +296,7 @@ __device__ Ray primary_ray(const CameraGPU& cam, int px, int py, float jx, float
     return make_ray(cam.pos, dirWorld);
 }
 
-__device__ vec3 trace_path(const DeviceScene& s, Ray ray, int maxBounces, uint32_t& rng)
+__device__ vec3 trace_path(const DeviceScene& s, const BvhNode* s_top, Ray ray, int maxBounces, uint32_t& rng)
 {
     vec3 L          = v3(0, 0, 0);
     vec3 throughput = v3(1, 1, 1);
@@ -288,7 +305,7 @@ __device__ vec3 trace_path(const DeviceScene& s, Ray ray, int maxBounces, uint32
     {
         float hitT, hitU, hitV;
         vec3 N;
-        int tri = traverse_closest(s, ray, 1e30f, hitT, N, hitU, hitV);
+        int tri = traverse_closest(s, s_top, ray, 1e30f, hitT, N, hitU, hitV);
         if (tri < 0) break;
 
         if (dot(N, ray.d) > 0.0f) N = vmul(N, -1.0f);
@@ -297,7 +314,7 @@ __device__ vec3 trace_path(const DeviceScene& s, Ray ray, int maxBounces, uint32
         const DeviceMaterial& m = s.mats[s.tris[tri].material];
         vec3 albedo = sample_albedo(m, hitU, hitV);
 
-        L = vadd(L, vhad(throughput, shade_direct(s, P, N, albedo)));
+        L = vadd(L, vhad(throughput, shade_direct(s, s_top, P, N, albedo)));
 
         if (bounce == maxBounces) break;
 
@@ -320,6 +337,13 @@ __device__ vec3 trace_path(const DeviceScene& s, Ray ray, int maxBounces, uint32
 __global__ void accumulate_kernel(DeviceScene s, CameraGPU cam, float* accum,
                                    int sppThisLaunch, int sampleBase, int maxBounces)
 {
+    __shared__ BvhNode s_top[kShmemBvhNodes];
+    int linearTid = threadIdx.y * blockDim.x + threadIdx.x;
+    // Block is 16x16 = 256 threads >= kShmemBvhNodes so one thread per node.
+    if (linearTid < kShmemBvhNodes)
+        s_top[linearTid] = s.nodes[linearTid];
+    __syncthreads();
+
     int px = blockIdx.x * blockDim.x + threadIdx.x;
     int py = blockIdx.y * blockDim.y + threadIdx.y;
     if (px >= cam.width || py >= cam.height) return;
@@ -332,7 +356,7 @@ __global__ void accumulate_kernel(DeviceScene s, CameraGPU cam, float* accum,
         float jx = randf(rng);
         float jy = randf(rng);
         Ray r = primary_ray(cam, px, py, jx, jy);
-        sum = vadd(sum, trace_path(s, r, maxBounces, rng));
+        sum = vadd(sum, trace_path(s, s_top, r, maxBounces, rng));
     }
 
     int i = (py * cam.width + px) * 3;
