@@ -138,6 +138,30 @@ third_party/
 - [ ] Variance-aware accumulation / adaptive sampling
 - [ ] HDR Reinhard tonemap + proper sRGB encode
 
+## Nsight Compute profile (RTX 4080, Ada Lovelace SM 8.9)
+
+Full analysis: [`docs/profile_analysis.md`](docs/profile_analysis.md). Raw
+report: `output/profile/accumulate.ncu-rep` (open in `ncu-ui`).
+
+Top-line numbers for `accumulate_kernel`:
+
+| Section | Metric | Value |
+|---|---|--:|
+| Speed of Light | L2 Cache Throughput | **90.8%** |
+| Speed of Light | Compute (SM) Throughput | 61.4% |
+| Speed of Light | DRAM Throughput | 7.2% |
+| Memory | L1 Hit Rate | 78.3% |
+| Memory | L2 Hit Rate | 97.8% |
+| Occupancy | Theoretical / Achieved | 50% / 46.6% (reg-limited at 76 regs/thread) |
+| Divergence | Branch Efficiency | 83.6% |
+
+The kernel is **L2-bandwidth bound**, not compute-bound (correcting my earlier
+guess). Working set fits in Ada's ~40 MB L2 — DRAM barely touched — but L2
+itself is saturated serving hits. ncu identifies three optimization paths:
+reduce uncoalesced global accesses (~70% potential speedup via ray sorting),
+raise occupancy (~50% via register reduction), and fix uncoalesced SMEM
+stack accesses (~21%).
+
 ## Performance notes
 
 A BFS relayout + `__shared__` cache of the top 255 BVH nodes (top 8 levels)
