@@ -1,11 +1,4 @@
-"""
-Compare a LuminaGI screenshot against the CUDA reference render.
-
-    diff.py engine.png ref.png [--out report.html]
-
-Produces an HTML report with PSNR/SSIM numbers and an abs-diff heatmap.
-If the two images differ in size, the engine image is resized to match.
-"""
+"""diff.py engine.png ref.png [--out report.html]  —  PSNR/SSIM/heatmap."""
 
 import argparse
 import base64
@@ -20,16 +13,13 @@ from skimage.metrics import structural_similarity as ssim
 
 def load_rgb(path):
     img = Image.open(path).convert("RGB")
-    return np.asarray(img, dtype=np.uint8), img.size  # size = (w, h)
+    return np.asarray(img, dtype=np.uint8), img.size
 
 
-def match_size(a, size_b):
-    # size_b is (w, h)
-    w_a, h_a = a.shape[1], a.shape[0]
-    if (w_a, h_a) == size_b:
+def match_size(a, target_wh):
+    if (a.shape[1], a.shape[0]) == target_wh:
         return a
-    img = Image.fromarray(a).resize(size_b, Image.BILINEAR)
-    return np.asarray(img, dtype=np.uint8)
+    return np.asarray(Image.fromarray(a).resize(target_wh, Image.BILINEAR), dtype=np.uint8)
 
 
 def psnr(a, b):
@@ -39,7 +29,7 @@ def psnr(a, b):
     return 20.0 * np.log10(255.0 / np.sqrt(mse))
 
 
-# 256-step viridis-ish colormap, enough for a single-channel heatmap.
+# Hand-rolled viridis-ish LUT — avoids pulling matplotlib just for a colormap.
 def viridis_lut():
     x = np.linspace(0.0, 1.0, 256)
     r = np.clip(-0.2 + 2.4 * x - 1.3 * x ** 2, 0, 1)

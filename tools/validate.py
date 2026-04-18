@@ -1,12 +1,4 @@
-"""
-One-shot validation runner:  engine screenshot  vs  CUDA reference render.
-
-    validate.py <scene.json> [--open]
-
-Assumes the engine screenshot sits next to the JSON at the same stem
-(F9 writes both, as does --screenshot). Runs cuda_ref.exe, then diff.py,
-then prints the metrics and (optionally) opens the HTML report.
-"""
+"""validate.py <scene.json> [--open]  —  runs cuda_ref.exe then diff.py on the engine PNG next to it."""
 
 import argparse
 import os
