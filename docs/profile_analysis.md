@@ -32,10 +32,9 @@ Throughput against a 7.15% DRAM Throughput shows the working set mostly fits
 in L2 (Ada's ~40 MB L2 easily absorbs the 810k-node × 40 B ≈ 32 MB BVH plus
 hot triangles), but the kernel is pushing L2 to saturation serving those hits.
 
-This *corrects* the earlier hypothesis from the shared-memory experiment that
-the kernel was compute-bound on ray-triangle intersection. Sym­p­tom­ati­cally it
-looks that way (IPC low, kernel long), but the underlying stall driver is L2
-bandwidth — a distinction only visible with hardware counters.
+This contradicts the initial guess (from the shmem experiment) that the kernel
+was compute-bound on ray-triangle intersection. The symptoms (low IPC, long
+kernel time) look the same; only the hardware counters separate the two.
 
 ### Why shared-memory BVH caching didn't help (revisited)
 
@@ -115,11 +114,10 @@ report: `accumulate_lb4.ncu-rep`. Full text: `nsight_compute_report_lb4.txt`.
 | DRAM Throughput | 7.2% | 9.7% | +2.5 pp |
 | Compute (SM) Throughput | 61.4% | 53.2% | −8 pp |
 
-The picture after the fix is consistent and informative: *more active warps →
-more concurrent memory requests → L2 even more saturated*. SM throughput
-dropped because the same total compute is now spread across more warps that
-each individually stall more on memory. The kernel didn't become *less* efficient
-— the bottleneck just surfaced more clearly as L2 bandwidth.
+More active warps → more concurrent memory requests → L2 even more saturated.
+SM throughput dropped because the same compute is now spread across more warps
+that each individually stall more on memory; the kernel didn't get less efficient,
+the bottleneck just became more obviously L2 bandwidth.
 
 Theoretical occupancy stopped at 66.7% rather than the register-math-optimal
 75% because the new limiter is **shared memory per block** (10.2 KB × 4 blocks
@@ -154,11 +152,3 @@ Low LDG count (5.4%) is misleading — memory instructions are "fat" in
 cycles, so a small count can still saturate L2 bandwidth, which is what
 ncu shows.
 
-## Why this analysis is the point
-
-This is the workflow a performance-model / arch team cares about:
-**predict → measure → reconcile.** My prediction ("compute-bound") was wrong;
-ncu told me so; the corrected model (L2-bound, divergence-amplified)
-explains both the original timing and the null result from the shmem cache.
-The SASS, the hardware counters, and the architectural reasoning line up —
-which is the point of profile-driven work, not the raw speedup number.
