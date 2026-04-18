@@ -43,7 +43,6 @@ bool LoadSceneJSON(const std::string& path, Scene& out)
         return false;
     }
 
-    // Version gate — keeps schema compatible going forward
     int version = j.value("version", 0);
     if (version != 1)
     {

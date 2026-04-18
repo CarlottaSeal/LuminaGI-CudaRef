@@ -1,7 +1,4 @@
 #pragma once
-// Small vec3 shared between host and device. No operator overloads
-// on device-side POD structs — keeps CUDA happy and keeps the code
-// readable when you see vadd / vsub / dot / cross inline.
 
 #ifdef __CUDACC__
   #define VM_HD __host__ __device__ inline
@@ -34,7 +31,7 @@ VM_HD vec3 normalize(vec3 a)
 struct Ray
 {
     vec3 o, d;
-    vec3 inv_d; // 1/d, prefilled to skip divides during traversal
+    vec3 inv_d;   // precomputed 1/d for slab tests
 };
 
 VM_HD Ray make_ray(vec3 o, vec3 d)
