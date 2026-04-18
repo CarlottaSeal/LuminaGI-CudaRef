@@ -10,3 +10,7 @@ output/
 .vscode/
 CMakeSettings.json
 
+# Engine-produced scene dumps (hundreds of MB each; reproduce with F9)
+manual_*.json
+scenes/manual_*.json
+
