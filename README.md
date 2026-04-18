@@ -54,19 +54,22 @@ Current numbers against LuminaGI screenshot (same scene, 1.1M tris, 64 spp, 2 bo
 
 | Metric | Value |
 |---|--:|
-| PSNR | **20.5 dB** |
-| SSIM | **0.569** |
-| Mean abs diff | 17.1 / 255 |
+| PSNR | **21.8 dB** |
+| SSIM | **0.631** |
+| Mean abs diff | 13.4 / 255 |
 
 Remaining gap is systematic: LuminaGI has an ambient term, normal-map detail,
 and a specific tonemap this reference doesn't model. That's intentional — the
 point is physically-correct ground truth, not a pixel clone of the engine.
 
-The diff pipeline has already caught one silent bug: `Scene::DumpToJSON` was
-double-applying the mesh transform because `MeshObject::GetWorldMatrix()`
-already includes it. Symptom was "all meshes look untransformed" in the
-reference but not in the engine — exactly the kind of divergence a pixel
-diff surfaces immediately. Fix took PSNR from 12.7 dB to 20.5 dB.
+Two silent bugs the diff pipeline has caught so far:
+1. `Scene::DumpToJSON` double-applied the mesh transform because
+   `MeshObject::GetWorldMatrix()` already includes it; meshes rendered at origin
+   in the reference but not in the engine. Fix lifted PSNR from 12.7 dB to 20.5 dB.
+2. `DX12Renderer::CreateTextureFromImage` never propagated the source image's
+   path to the resulting `Texture`, so GLB-embedded diffuse textures (chess piece
+   materials) dumped as empty paths. Fixing the name propagation plus a PNG-export
+   step on GLB load lifted PSNR from 20.5 dB to 21.8 dB.
 
 ## Build
 
