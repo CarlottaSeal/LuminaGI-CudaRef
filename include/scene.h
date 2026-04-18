@@ -1,11 +1,4 @@
 #pragma once
-//--------------------------------------------------------------------------
-// Host-side scene representation. Populated by LoadSceneJSON() from the
-// scene dump produced by LuminaGI's Scene::DumpToJSON().
-//
-// This is plain CPU data; upload-to-device helpers live in pathtracer.cu.
-//--------------------------------------------------------------------------
-
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -13,7 +6,7 @@
 struct CameraDesc
 {
     float pos[3]            = {0, 0, 0};
-    float cameraToWorld[16] = {};   // matches LuminaGI Mat44 storage (SD engine)
+    float cameraToWorld[16] = {};
     float fovYDeg           = 60.0f;
     float aspect            = 1.0f;
     float nearZ             = 0.1f;
@@ -41,13 +34,13 @@ struct Material
 {
     float       albedo[3]   = {0.8f, 0.8f, 0.8f};
     float       emissive[3] = {0, 0, 0};
-    std::string diffuseTex;                       // empty = untextured
+    std::string diffuseTex;   // empty = untextured
 };
 
 struct Triangle
 {
-    float v[3][3];    // world-space positions
-    float n[3][3];    // world-space normals (already transformed)
+    float v[3][3];
+    float n[3][3];
     float uv[3][2];
     int   material = 0;
 };
@@ -55,12 +48,11 @@ struct Triangle
 struct Scene
 {
     CameraDesc                    camera;
-    DirectionalLight              sun;   // scene-global sun (always present)
+    DirectionalLight              sun;
     std::vector<DirectionalLight> directionals;
     std::vector<PointLight>       points;
     std::vector<Material>         materials;
     std::vector<Triangle>         triangles;
 };
 
-// Returns true on success. Logs to stderr on failure.
 bool LoadSceneJSON(const std::string& path, Scene& out);

@@ -1,6 +1,3 @@
-// V3: primary + NEE direct + diffuse texture + indirect bounces with RR,
-// progressive accumulation over N samples per pixel.
-
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -36,13 +33,9 @@ struct DeviceScene
     DirectionalLight      sun;
 };
 
-// Top 255 nodes (= 8 full levels) are cached in __shared__ per block.
-// BuildBVH does a BFS relayout so indices [0, kShmemBvhNodes) are the top levels.
-//
-// We read individual fields through explicit if/else rather than a ternary on
-// pointers, because mixing __shared__ and __global__ pointers via ?: forces
-// nvcc into the generic address space — loads then go through a runtime
-// space check and run noticeably slower than address-specific loads.
+// Top 255 BVH nodes ( = 8 full levels after BuildBVH's BFS relayout) can live in __shared__.
+// Explicit if/else around the fetch, not a ternary on __shared__/__global__ pointers —
+// the ternary forces nvcc to the generic address space, which measurably slows loads.
 constexpr int kShmemBvhNodes = 255;
 
 #ifdef BVH_USE_SHMEM

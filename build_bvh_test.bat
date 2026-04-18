@@ -1,5 +1,6 @@
 @echo off
 setlocal
+cd /d %~dp0
 
 set "MSVC_ROOT=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.38.33130"
 set "SDK_ROOT=C:\Program Files (x86)\Windows Kits\10"
