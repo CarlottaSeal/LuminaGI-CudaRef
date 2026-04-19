@@ -1,13 +1,10 @@
 # LuminaGI-CudaRef
 
-A CUDA reference path tracer used as ground truth for validating
-[LuminaGI](https://github.com/CarlottaSeal)'s real-time global illumination output.
-
-LuminaGI is a DX12 GI engine using screen-space probes, voxel lighting, and a
-surface card cache. Its output is always an *approximation*. This project provides
-a brute-force, physically-straight renderer on CUDA so any LuminaGI frame can
-be diffed against a reference image — giving PSNR/SSIM numbers and per-pixel
-heatmaps to tell you *where* and *how much* the approximation diverges.
+CUDA path tracer used as a reference for [LuminaGI](https://github.com/CarlottaSeal),
+a DX12 GI engine with screen probes, voxel lighting, and a surface card cache.
+LuminaGI's GI is approximate; this renderer is brute-force so its output gives
+you something to diff against — PSNR/SSIM numbers and a per-pixel heatmap
+that show where the approximation drifts.
 
 | LuminaGI (engine) | CUDA reference (this repo) | Abs-diff heatmap |
 |---|---|---|
@@ -58,11 +55,11 @@ Current numbers against LuminaGI screenshot (same scene, 1.1M tris, 64 spp, 2 bo
 | SSIM | **0.631** |
 | Mean abs diff | 13.4 / 255 |
 
-Remaining gap is systematic: LuminaGI has an ambient term, normal-map detail,
-and a specific tonemap this reference doesn't model. That's intentional — the
-point is physically-correct ground truth, not a pixel clone of the engine.
+Remaining gap is systematic — LuminaGI has an ambient term and normal-map
+detail this reference doesn't model. That's fine; the reference is meant to
+be physically straightforward, not a pixel clone of the engine.
 
-Two silent bugs the diff pipeline has caught so far:
+Two silent bugs the diff pipeline has caught:
 1. `Scene::DumpToJSON` double-applied the mesh transform because
    `MeshObject::GetWorldMatrix()` already includes it; meshes rendered at origin
    in the reference but not in the engine. Fix lifted PSNR from 12.7 dB to 20.5 dB.
@@ -139,7 +136,7 @@ third_party/
 - [x] One-shot validation pipeline
 - [ ] Binary scene format (JSON is slow at 300 MB / 12 s parse)
 - [ ] Variance-aware accumulation / adaptive sampling
-- [ ] HDR Reinhard tonemap + proper sRGB encode
+- [ ] Ray sort between bounces to recover coalescence (ncu's top speedup lead)
 
 ## Nsight Compute profile (RTX 4080, Ada Lovelace SM 8.9)
 
@@ -158,44 +155,28 @@ Top-line numbers for `accumulate_kernel`:
 | Occupancy | Theoretical / Achieved | 50% / 46.6% (reg-limited at 76 regs/thread) |
 | Divergence | Branch Efficiency | 83.6% |
 
-The kernel is **L2-bandwidth bound**, not compute-bound (correcting my earlier
-guess). Working set fits in Ada's ~40 MB L2 — DRAM barely touched — but L2
-itself is saturated serving hits. ncu identifies three optimization paths:
-reduce uncoalesced global accesses (~70% potential speedup via ray sorting),
-raise occupancy (~50% via register reduction), and fix uncoalesced SMEM
-stack accesses (~21%).
+Kernel is **L2-bandwidth bound**, not compute-bound. Working set fits in
+Ada's ~40 MB L2 so DRAM stays at 7%, but L2 itself saturates serving hits.
+ncu flags three knobs: reduce uncoalesced global accesses (~70% potential
+speedup via ray sorting), raise occupancy (~50% via register reduction),
+and fix uncoalesced SMEM stack accesses (~21%).
 
 ## Performance notes
 
-A BFS relayout + `__shared__` cache of the top 255 BVH nodes (top 8 levels)
-is implemented behind `-DBVH_USE_SHMEM`. A/B benchmark on the test scene
-(64 spp, 2 bounces, 3 runs each): **3336 ms off, 3343 ms on — essentially zero
-difference**.
+Optional shmem cache of the top 255 BVH nodes (BFS relayout) lives behind
+`-DBVH_USE_SHMEM`. A/B, 3 runs each at 64 spp / 2 bounces: **3336 ms off,
+3343 ms on**. No win because Ada's 40 MB L2 already keeps the top levels
+resident, and the kernel pays more cycles on ray-triangle math and RNG than
+on BVH loads. Left toggleable in case it matters on a GPU with a smaller L2.
 
-Why it didn't help:
-- RTX 4080 has ~40 MB L2 cache. The top BVH levels are permanent L2 residents
-  under path-tracing workloads, so a manual shmem cache duplicates what L2
-  already does for free.
-- The kernel is compute-bound on ray-triangle intersection, `cosf`/`sinf`/`sqrtf`
-  in hemisphere sampling, and RNG — not memory-bound on BVH loads.
-- Path tracing has high warp divergence after the first bounce; neighboring
-  pixels don't traverse the same nodes coherently, which weakens the spatial
-  locality a shmem cache relies on.
+## Engine-side changes
 
-Kept in the tree as a toggle because "implemented and measured to not help"
-is a better answer than "didn't try".
+Four files under `SD/Engine` and `SD/LuminaGI`:
+- `Camera`: four getters for fov/aspect/near/far (no internal change)
+- `Scene::DumpToJSON(path, camera, w, h)`: world-space triangle soup + lights + camera
+- `App::RunFrame`: F9 sets a pending flag, captured *after* `EndFrame`
+- `AutomatedTesting`: `--screenshot` auto-dumps a matching `.json`
 
-## Notes on the engine side
-
-Three changes to LuminaGI / Engine to make the dump work:
-- `Camera::GetPerspectiveFOV/Aspect/Near/Far` getters (4 lines)
-- `Scene::DumpToJSON(path, camera, w, h)` (~140 lines)
-- F9 handler in `App::RunFrame` — deferred to *after* `EndFrame` because
-  `CaptureScreenshot` stomps the D3D12 command list state if run mid-frame
-- `AutomatedTesting` auto-emits a `.json` whenever `--screenshot` fires
-
-The deferred-capture bug was the one surprise of the integration — the first
-version crashed on the next frame's `BindConstantBuffer` call because
-`CaptureScreenshot` internally closes and resets the command list, discarding
-any state the normal render path expected to be intact. Moving the call to
-after `EndFrame()` fixed it.
+The F9-after-EndFrame bit was a bug first: calling `CaptureScreenshot`
+mid-frame closes and resets the command list, so the next
+`BindConstantBuffer` crashes. Deferring until after the present fixes it.
