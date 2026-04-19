@@ -152,3 +152,26 @@ Low LDG count (5.4%) is misleading — memory instructions are "fat" in
 cycles, so a small count can still saturate L2 bandwidth, which is what
 ncu shows.
 
+## Tonemap A/B — kept sqrt + clamp
+
+Curiosity experiment: try "more physically correct" tonemap curves and see
+whether they close the PSNR gap. Three variants against the same engine
+screenshot (64 spp, 2 bounces):
+
+| Tonemap | PSNR | SSIM | MAD |
+|---|--:|--:|--:|
+| **sqrt + clamp** (kept) | 21.80 dB | **0.631** | 13.43 |
+| Reinhard (white=4) + sRGB | 21.87 dB | 0.557 | 14.19 |
+| sRGB encode only (no Reinhard) | 22.16 dB | 0.559 | 13.80 |
+
+PSNR crept up by tenths of a dB; SSIM dropped ~10%. Reason: LuminaGI's
+backbuffer encode is closest to sqrt gamma, so pushing toward a
+display-referred sRGB curve or a Reinhard roll-off moved the reference
+*away* from the engine rather than toward it. The project's figure of
+merit is reference-vs-engine similarity, not absolute photometric
+correctness of the reference alone, so sqrt wins on the one metric that
+matters here.
+
+The measured numbers live in a comment above `tonemap_kernel` so the
+next person doesn't repeat the experiment.
+
