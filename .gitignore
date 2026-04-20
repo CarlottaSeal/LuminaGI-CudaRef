@@ -9,8 +9,15 @@ output/
 .vs/
 .vscode/
 CMakeSettings.json
+__pycache__/
 
 # Engine-produced scene dumps (hundreds of MB each; reproduce with F9)
 manual_*.json
 scenes/manual_*.json
+
+# ML datasets are regeneratable via ml/gen_dataset.py; keep batch.txt as the
+# recipe, not the PNG pairs. Trained checkpoints and eval samples stay.
+ml/data/noisy/
+ml/data/clean/
+!ml/data/batch.txt
 

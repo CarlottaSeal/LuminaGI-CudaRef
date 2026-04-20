@@ -89,6 +89,30 @@ Two silent bugs the diff pipeline has caught:
    onto the `Texture`, so GLB-embedded diffuse textures (chess pieces) dumped as
    empty paths. Propagating the name + exporting GLB images to PNG: 20.5 → 21.8 dB.
 
+## Neural denoiser (UNet on 8-spp output)
+
+256-spp takes ~13 s/frame on this hardware, most of it beating down Monte
+Carlo noise. A small UNet trained on (8-spp noisy, 256-spp clean) pairs
+gets most of the way to the clean reference at a fraction of the cost.
+
+| 8 spp (noisy) | 8 spp + UNet denoise | 1024 spp ground truth |
+|---|---|---|
+| ![noisy](docs/denoise_noisy.png) | ![denoised](docs/denoise_out.png) | ![gt](docs/denoise_gt.png) |
+
+| Variant | Total time | PSNR vs GT | SSIM |
+|---|--:|--:|--:|
+| 8 spp raw | 400 ms | 34.52 dB | 0.815 |
+| **8 spp + UNet** | **597 ms** | **42.04 dB** | **0.964** |
+| 256 spp naive | 13,400 ms | 49.57 dB | 0.991 |
+
+~22× faster than the 256-spp baseline for ~80% of its PSNR gain over raw
+8 spp. Full setup + training recipe + caveats in
+[`docs/denoiser.md`](docs/denoiser.md).
+
+Scripts: [`ml/gen_dataset.py`](ml/gen_dataset.py) →
+[`ml/train.py`](ml/train.py) → [`tools/denoise.py`](tools/denoise.py).
+Uses `cuda_ref --batch` to amortise scene load across all renders.
+
 ## Optimizations
 
 **`__launch_bounds__(256, 4)`** — forces register budget to 64/thread (from 76),
@@ -167,14 +191,21 @@ include/
 src/
   scene_loader.cpp   JSON parse (nlohmann::json)
   bvh.cpp            LBVH build: Morton codes -> radix split -> BFS relayout
-  pathtracer.cu      CUDA kernel: camera rays, BVH traversal, NEE + indirect
-  main.cpp           driver (argv -> render -> PNG)
+  pathtracer.cu      CUDA kernel: camera rays, BVH traversal, NEE + indirect, --sort variant
+  main.cpp           driver (argv -> render -> PNG), --batch mode
   test_load_scene.cpp / test_bvh.cpp   pure-host sanity tests
 tools/
   diff.py       PSNR / SSIM / heatmap -> HTML report
   validate.py   end-to-end wrapper: cuda_ref.exe + diff.py
+  denoise.py    load UNet checkpoint -> denoise a PNG
+ml/
+  gen_dataset.py  roll random cameras, render (noisy, clean) pairs via --batch
+  train.py        UNet training (PyTorch)
+  runs/           trained checkpoints
 docs/
   profile_analysis.md           measured findings, full metric tables
+  denoiser.md                   UNet setup + results + caveats
+  ada_microarch.md              SM 8.9 cheatsheet
   accumulate.ncu-rep            raw Nsight Compute report (open in ncu-ui)
   kernel.sass.txt               cuobjdump SASS dump
 third_party/
