@@ -122,7 +122,7 @@ mid-frame closes and resets the command list, and the next
 - [x] Indirect bounces: cosine-weighted hemisphere, Russian roulette, progressive accumulation
 - [x] Image diff (PSNR / SSIM / heatmap), HTML report, validate.py
 - [x] Nsight Compute profile + SASS histogram
-- [ ] Ray sort between bounces to recover coalescence (ncu's top speedup lead)
+- [ ] Ray sort between bounces to recover coalescence ([plan](docs/ray_sort_plan.md); thrust dependency smoke-tested, full multi-kernel refactor pending)
 - [ ] Binary scene format (JSON parse is 12 s)
 - [ ] Variance-aware adaptive sampling
 
