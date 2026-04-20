@@ -1,10 +1,8 @@
 # Neural denoiser — UNet on 8-spp path-traced output
 
-The path tracer is accurate but slow: at 256 spp / 2 bounces it takes ~13 s
-per 1728×864 frame on the RTX 4080 Laptop. Most of that time is spent
-beating down Monte Carlo noise. A learned denoiser converts low-spp
-output to something close to the high-spp reference for a fraction of the
-extra cost.
+256 spp / 2 bounces takes ~13 s per 1728×864 frame on the RTX 4080 Laptop;
+most of that is Monte Carlo noise reduction. A small learned denoiser
+on 8-spp input recovers most of the 256-spp quality for a small extra cost.
 
 ## Setup
 
@@ -54,9 +52,9 @@ cuda_ref (8 spp, ~400 ms)  →  noisy.png  →  denoise.py (UNet, 197 ms)  →  
   reprojection). Out of scope for a one-scene offline reference.
 - **Kernel-prediction architecture** (vs direct prediction) — edges
   better preserved, but larger code footprint.
-- **CUDA inference** — current inference goes through PyTorch; an ONNX →
-  TensorRT → integrated CUDA inference path would drop the 197 ms
-  overhead further. Not needed to make the argument; added complexity.
+- **CUDA inference** — inference currently goes through PyTorch; an
+  ONNX → TensorRT path would shrink the 197 ms further. Skipped so the
+  pipeline stays one Python wrapper.
 - **Generalisation to other scenes** — trained on 50 poses in one
   indoor-room scene. A scene-independent denoiser needs a much larger,
   more varied training set (this is what production denoisers do).

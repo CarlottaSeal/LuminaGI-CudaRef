@@ -1,11 +1,8 @@
-"""gen_dataset.py <scene.json> <out_dir> [--n N] [--noisy-spp 8] [--clean-spp 256] [--bounces 2]
-
-Rolls N random cameras around the scene's original camera, renders a (noisy, clean)
-pair for each via cuda_ref.exe, and writes PNGs into out_dir/noisy/ + out_dir/clean/.
-"""
+"""gen_dataset.py <scene.json> <out_dir> [--n N] [--noisy-spp 8] [--clean-spp 256] [--bounces 2]"""
 
 import argparse
 import json
+import math
 import pathlib
 import random
 import subprocess
@@ -16,20 +13,16 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 CUDA_REF = REPO / "build" / "bin" / "cuda_ref.exe"
 
 
-def random_camera_around(anchor_pos, radius_xy=2.5, radius_z=0.4, yaw_jitter_deg=30, pitch_jitter_deg=15):
-    """Random position near anchor, target looking in a slightly jittered forward direction."""
-    import math
-    ax, ay, az = anchor_pos
+def random_camera_around(anchor, radius_xy=2.5, radius_z=0.4, yaw_deg=30, pitch_deg=15):
+    ax, ay, az = anchor
     r = random.uniform(0.0, radius_xy)
     ang = random.uniform(0.0, 2.0 * math.pi)
     pos = (ax + r * math.cos(ang),
            ay + r * math.sin(ang),
            az + random.uniform(-radius_z, radius_z))
 
-    # Face a random nearby point — randomise yaw from a world-forward-ish direction.
-    # Target = pos + unit forward (jittered).
-    yaw   = math.radians(random.uniform(-yaw_jitter_deg,   yaw_jitter_deg))
-    pitch = math.radians(random.uniform(-pitch_jitter_deg, pitch_jitter_deg))
+    yaw   = math.radians(random.uniform(-yaw_deg,   yaw_deg))
+    pitch = math.radians(random.uniform(-pitch_deg, pitch_deg))
     fx = math.cos(pitch) * math.cos(yaw)
     fy = math.cos(pitch) * math.sin(yaw)
     fz = math.sin(pitch)

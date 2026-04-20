@@ -177,7 +177,6 @@ int main(int argc, char** argv)
     Bvh bvh;
     BuildBVH(scene, bvh);
     auto t1 = std::chrono::steady_clock::now();
-    (void)t0; (void)t1;
     std::printf("bvh: %.1f ms (%zu nodes)\n",
                 std::chrono::duration<double, std::milli>(t1 - t0).count(),
                 bvh.nodes.size());

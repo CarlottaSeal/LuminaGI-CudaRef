@@ -1,9 +1,4 @@
-"""denoise.py <checkpoint.pt> <noisy.png> <out.png>
-
-Loads a trained UNet and denoises a single PNG. Uses padding to keep full
-resolution (U-Net halves 3 times, so both dimensions must be /8; we pad
-with replicate then crop back).
-"""
+"""denoise.py <checkpoint.pt> <noisy.png> <out.png>"""
 
 import argparse
 import pathlib
@@ -15,7 +10,6 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 
-# Import UNet definition — same file holds training + arch.
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "ml"))
 from train import UNet  # noqa: E402
 
@@ -46,7 +40,8 @@ def main():
     t0 = time.perf_counter()
     with torch.no_grad():
         y = model(x)
-    torch.cuda.synchronize() if device.type == "cuda" else None
+    if device.type == "cuda":
+        torch.cuda.synchronize()
     dt_ms = (time.perf_counter() - t0) * 1000.0
 
     y = y[:, :, :H, :W].squeeze(0).cpu().numpy().transpose(1, 2, 0)

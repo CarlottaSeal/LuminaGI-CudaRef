@@ -1,7 +1,4 @@
-"""train.py <data_dir> [--epochs N] [--batch N] [--out path.pt]
-
-Simple U-Net denoiser. Crop-based augmentation, L1 loss, Adam.
-"""
+"""train.py <data_dir> [--epochs N] [--batch N] [--out path.pt]"""
 
 import argparse
 import pathlib
@@ -50,7 +47,7 @@ class UNet(nn.Module):
         u3 = self.u3(torch.cat([self.up(d4), d3], 1))
         u2 = self.u2(torch.cat([self.up(u3), d2], 1))
         u1 = self.u1(torch.cat([self.up(u2), d1], 1))
-        # Predict a residual on top of the noisy input, clamped to [0,1].
+        # Residual on input, clamped to [0,1].
         return torch.clamp(x + self.tail(u1), 0.0, 1.0)
 
 
