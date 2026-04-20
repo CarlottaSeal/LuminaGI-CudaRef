@@ -15,6 +15,9 @@
 void RenderSceneCUDA(const Scene& scene, const Bvh& bvh, const std::string& assetRoot,
                      int spp, int maxBounces,
                      std::vector<uint8_t>& outRGB, int& outW, int& outH);
+void RenderSceneCUDASorted(const Scene& scene, const Bvh& bvh, const std::string& assetRoot,
+                           int spp, int maxBounces,
+                           std::vector<uint8_t>& outRGB, int& outW, int& outH);
 
 int main(int argc, char** argv)
 {
@@ -23,6 +26,7 @@ int main(int argc, char** argv)
     std::string assetRoot;
     int spp = 64;
     int bounces = 2;
+    bool useSort = false;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -31,6 +35,7 @@ int main(int argc, char** argv)
         else if (a == "--bounces" && i + 1 < argc)  bounces = std::atoi(argv[++i]);
         else if (a == "--asset-root" && i + 1 < argc) assetRoot = argv[++i];
         else if (a == "-o" && i + 1 < argc)         pngPath = argv[++i];
+        else if (a == "--sort")                     useSort = true;
         else if (a[0] != '-' && !jsonPath)          jsonPath = argv[i];
         else if (a[0] != '-')                       pngPath = argv[i];
     }
@@ -60,7 +65,10 @@ int main(int argc, char** argv)
     std::vector<uint8_t> rgb;
     int W = 0, H = 0;
     auto t2 = std::chrono::steady_clock::now();
-    RenderSceneCUDA(scene, bvh, assetRoot, spp, bounces, rgb, W, H);
+    if (useSort)
+        RenderSceneCUDASorted(scene, bvh, assetRoot, spp, bounces, rgb, W, H);
+    else
+        RenderSceneCUDA(scene, bvh, assetRoot, spp, bounces, rgb, W, H);
     auto t3 = std::chrono::steady_clock::now();
     std::printf("render: %.1f ms (%d x %d)\n",
                 std::chrono::duration<double, std::milli>(t3 - t2).count(), W, H);

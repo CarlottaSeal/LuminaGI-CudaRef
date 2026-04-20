@@ -100,6 +100,15 @@ takes theoretical occupancy 50% → 75% (capped at 66.7% by shmem). Measured
 2 bounces, 3 runs each: **3336 ms off, 3343 ms on** — no win, Ada's 40 MB L2
 already keeps those nodes resident. Left toggleable.
 
+**Ray sort between bounces** (`--sort`) — ncu's top lead: sort rays by direction
+Morton between bounces (multi-kernel + `thrust::sort_by_key`), expected to
+reduce the 70% uncoalesced global access count. A/B at 64 spp / 2 bounces:
+**2,950 ms off, 4,410 ms on (+50% slower)**. Output matches (PSNR 21.8 dB
+both ways). Same story as the shmem cache — L2 already had the repeat
+traffic, and the sort adds thrust work + atomic-adds + kernel-launch
+overhead. Full implementation stays in the tree behind the flag; see
+`docs/profile_analysis.md`.
+
 ## Engine-side changes
 
 Four files under `SD/Engine` and `SD/LuminaGI`:
@@ -122,7 +131,7 @@ mid-frame closes and resets the command list, and the next
 - [x] Indirect bounces: cosine-weighted hemisphere, Russian roulette, progressive accumulation
 - [x] Image diff (PSNR / SSIM / heatmap), HTML report, validate.py
 - [x] Nsight Compute profile + SASS histogram
-- [ ] Ray sort between bounces to recover coalescence ([plan](docs/ray_sort_plan.md); thrust dependency smoke-tested, full multi-kernel refactor pending)
+- [x] Ray sort between bounces ([`--sort`](docs/profile_analysis.md#ray-sort-between-bounces--measured-kept-off); implemented, measured +50% slower, kept as a toggle)
 - [ ] Binary scene format (JSON parse is 12 s)
 - [ ] Variance-aware adaptive sampling
 

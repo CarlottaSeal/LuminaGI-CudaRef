@@ -15,6 +15,7 @@ if not exist build\bin mkdir build\bin
 if not exist output  mkdir output
 
 "%CUDA_PATH%\bin\nvcc.exe" -arch=sm_89 -O2 -std=c++17 --allow-unsupported-compiler ^
+    -Xcompiler /Zc:preprocessor ^
     -I include -I third_party ^
     src\main.cpp src\pathtracer.cu src\scene_loader.cpp src\bvh.cpp ^
     -o build\bin\cuda_ref.exe

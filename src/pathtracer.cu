@@ -4,6 +4,9 @@
 #include <string>
 #include <cuda_runtime.h>
 
+#include <thrust/device_ptr.h>
+#include <thrust/sort.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -387,6 +390,128 @@ __global__ void tonemap_kernel(const float* accum, uint8_t* image, int W, int H,
     image[i + 2] = (uint8_t)(b * 255.0f);
 }
 
+// -------- Ray-sort path (opt-in via --sort) --------
+// Multi-kernel architecture: primary kernel writes a queue of bounce rays,
+// thrust sorts the queue by direction Morton, a bounce kernel processes the
+// sorted queue (now warp-coherent), writes the next queue, repeat.
+
+struct SortedRay
+{
+    vec3     origin;
+    vec3     dir;
+    vec3     throughput;
+    uint32_t pixel;    // destination accum index
+    uint32_t alive;    // 0 = terminated (miss or RR dead); bounce kernel skips
+};
+
+__device__ __forceinline__ uint32_t spread3_gpu(uint32_t v)
+{
+    v = (v | (v << 16)) & 0x030000FFu;
+    v = (v | (v << 8))  & 0x0300F00Fu;
+    v = (v | (v << 4))  & 0x030C30C3u;
+    v = (v | (v << 2))  & 0x09249249u;
+    return v;
+}
+
+__device__ __forceinline__ uint32_t direction_morton(vec3 d)
+{
+    // Map d in [-1,1]^3 to 10-bit ints per axis, then interleave.
+    uint32_t x = (uint32_t)fmaxf(0.0f, fminf(1023.0f, (d.x + 1.0f) * 511.5f));
+    uint32_t y = (uint32_t)fmaxf(0.0f, fminf(1023.0f, (d.y + 1.0f) * 511.5f));
+    uint32_t z = (uint32_t)fmaxf(0.0f, fminf(1023.0f, (d.z + 1.0f) * 511.5f));
+    return (spread3_gpu(x) << 2) | (spread3_gpu(y) << 1) | spread3_gpu(z);
+}
+
+__global__ void gen_primary_kernel(CameraGPU cam, SortedRay* rays, uint32_t* keys,
+                                   uint32_t* rng_state, int sampleBase)
+{
+    int px = blockIdx.x * blockDim.x + threadIdx.x;
+    int py = blockIdx.y * blockDim.y + threadIdx.y;
+    if (px >= cam.width || py >= cam.height) return;
+
+    int idx = py * cam.width + px;
+    uint32_t rng = (uint32_t)(px * 1973 + py * 9277 + sampleBase * 26699) | 1u;
+
+    float jx = randf(rng);
+    float jy = randf(rng);
+    Ray r = primary_ray(cam, px, py, jx, jy);
+
+    rays[idx].origin     = r.o;
+    rays[idx].dir        = r.d;
+    rays[idx].throughput = v3(1.0f, 1.0f, 1.0f);
+    rays[idx].pixel      = (uint32_t)idx;
+    rays[idx].alive      = 1;
+    keys[idx]            = direction_morton(r.d);
+    rng_state[idx]       = rng;
+}
+
+__global__ __launch_bounds__(256, 4)
+void trace_and_bounce_kernel(DeviceScene s, const SortedRay* in_rays, uint32_t count,
+                             float* accum,
+                             SortedRay* out_rays, uint32_t* out_keys,
+                             uint32_t* rng_state, bool lastBounce)
+{
+    __shared__ BvhNode s_top[kShmemBvhNodes];
+    int tid = threadIdx.y * blockDim.x + threadIdx.x;
+    if (tid < kShmemBvhNodes) s_top[tid] = s.nodes[tid];
+    __syncthreads();
+
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if ((uint32_t)i >= count) return;
+
+    SortedRay sr = in_rays[i];
+    if (!sr.alive)
+    {
+        if (out_rays) { out_rays[i] = sr; out_keys[i] = 0xFFFFFFFFu; }
+        return;
+    }
+
+    Ray r = make_ray(sr.origin, sr.dir);
+
+    float hitT, hitU, hitV;
+    vec3 N;
+    int tri = traverse_closest(s, s_top, r, 1e30f, hitT, N, hitU, hitV);
+    if (tri < 0)
+    {
+        if (out_rays) { out_rays[i].alive = 0; out_rays[i].pixel = sr.pixel; out_keys[i] = 0xFFFFFFFFu; }
+        return;
+    }
+    if (dot(N, r.d) > 0.0f) N = vmul(N, -1.0f);
+
+    vec3 P = vadd(r.o, vmul(r.d, hitT));
+    const DeviceMaterial& m = s.mats[s.tris[tri].material];
+    vec3 albedo = sample_albedo(m, hitU, hitV);
+
+    vec3 direct = shade_direct(s, s_top, P, N, albedo);
+    vec3 contrib = vhad(sr.throughput, direct);
+
+    // Accumulate into pixel slot. Atomic because sort scattered the pixel layout.
+    int ai = (int)sr.pixel * 3;
+    atomicAdd(&accum[ai + 0], contrib.x);
+    atomicAdd(&accum[ai + 1], contrib.y);
+    atomicAdd(&accum[ai + 2], contrib.z);
+
+    if (lastBounce || !out_rays) return;
+
+    // Spawn next bounce. Cosine-weighted Lambertian: throughput *= albedo.
+    uint32_t rng = rng_state[i];
+    vec3 newDir = sample_cos_hemi(N, rng);
+    rng_state[i] = rng;
+
+    SortedRay next;
+    next.origin     = vadd(P, vmul(N, 1e-3f));
+    next.dir        = newDir;
+    next.throughput = vhad(sr.throughput, albedo);
+    next.pixel      = sr.pixel;
+    next.alive      = 1;
+    out_rays[i] = next;
+    out_keys[i] = direction_morton(newDir);
+}
+
+void RenderSceneCUDASorted(const Scene& scene, const Bvh& bvh, const std::string& assetRoot,
+                           int spp, int maxBounces,
+                           std::vector<uint8_t>& outRGB, int& outW, int& outH);
+
 static bool load_texture_to_device(const std::string& fullPath,
                                    cudaArray_t& outArray, cudaTextureObject_t& outHandle)
 {
@@ -530,6 +655,158 @@ void RenderSceneCUDA(const Scene& scene, const Bvh& bvh, const std::string& asse
     cudaFree(d_nodes); cudaFree(d_tris); cudaFree(d_mats);
     if (d_points) cudaFree(d_points);
     cudaFree(d_image);
+    for (size_t i = 0; i < texHandles.size(); ++i)
+    {
+        if (texHandles[i]) cudaDestroyTextureObject(texHandles[i]);
+        if (texArrays[i])  cudaFreeArray(texArrays[i]);
+    }
+}
+
+// Multi-kernel, sort-between-bounces variant. Shares the scene/texture/BVH
+// upload with the inline version above (duplicated for file-local scope).
+void RenderSceneCUDASorted(const Scene& scene, const Bvh& bvh, const std::string& assetRoot,
+                           int spp, int maxBounces,
+                           std::vector<uint8_t>& outRGB, int& outW, int& outH)
+{
+    outW = scene.camera.imageWidth;
+    outH = scene.camera.imageHeight;
+    outRGB.assign((size_t)outW * outH * 3, 0);
+    const int N = outW * outH;
+
+    // --- texture setup (same as unsorted path) ---
+    std::vector<cudaArray_t>         texArrays(scene.materials.size(), nullptr);
+    std::vector<cudaTextureObject_t> texHandles(scene.materials.size(), 0);
+    int loaded = 0, missing = 0;
+    for (size_t i = 0; i < scene.materials.size(); ++i)
+    {
+        const std::string& rel = scene.materials[i].diffuseTex;
+        if (rel.empty()) continue;
+        std::string full = assetRoot + "/" + rel;
+        if (load_texture_to_device(full, texArrays[i], texHandles[i])) ++loaded;
+        else { std::fprintf(stderr, "  texture not found: %s\n", full.c_str()); ++missing; }
+    }
+    std::printf("textures: %d loaded, %d missing (of %zu materials)\n",
+                loaded, missing, scene.materials.size());
+
+    std::vector<DeviceMaterial> hostMats(scene.materials.size());
+    for (size_t i = 0; i < scene.materials.size(); ++i)
+    {
+        std::memcpy(hostMats[i].albedo,   scene.materials[i].albedo,   sizeof(float) * 3);
+        std::memcpy(hostMats[i].emissive, scene.materials[i].emissive, sizeof(float) * 3);
+        hostMats[i].tex = texHandles[i];
+    }
+
+    // --- scene buffers ---
+    BvhNode*        d_nodes  = nullptr;
+    Triangle*       d_tris   = nullptr;
+    DeviceMaterial* d_mats   = nullptr;
+    PointLight*     d_points = nullptr;
+    uint8_t*        d_image  = nullptr;
+    float*          d_accum  = nullptr;
+    SortedRay*      d_raysA  = nullptr;
+    SortedRay*      d_raysB  = nullptr;
+    uint32_t*       d_keysA  = nullptr;
+    uint32_t*       d_keysB  = nullptr;
+    uint32_t*       d_rng    = nullptr;
+
+    size_t nodesBytes  = bvh.nodes.size()       * sizeof(BvhNode);
+    size_t trisBytes   = scene.triangles.size() * sizeof(Triangle);
+    size_t matsBytes   = hostMats.size()        * sizeof(DeviceMaterial);
+    size_t pointsBytes = scene.points.size()    * sizeof(PointLight);
+    size_t imgBytes    = (size_t)outW * outH * 3;
+    size_t accumBytes  = (size_t)outW * outH * 3 * sizeof(float);
+    size_t rayBytes    = (size_t)N * sizeof(SortedRay);
+    size_t keyBytes    = (size_t)N * sizeof(uint32_t);
+
+    CUDA_CHECK(cudaMalloc(&d_nodes,  nodesBytes));
+    CUDA_CHECK(cudaMalloc(&d_tris,   trisBytes));
+    CUDA_CHECK(cudaMalloc(&d_mats,   matsBytes));
+    if (pointsBytes) CUDA_CHECK(cudaMalloc(&d_points, pointsBytes));
+    CUDA_CHECK(cudaMalloc(&d_image,  imgBytes));
+    CUDA_CHECK(cudaMalloc(&d_accum,  accumBytes));
+    CUDA_CHECK(cudaMalloc(&d_raysA,  rayBytes));
+    CUDA_CHECK(cudaMalloc(&d_raysB,  rayBytes));
+    CUDA_CHECK(cudaMalloc(&d_keysA,  keyBytes));
+    CUDA_CHECK(cudaMalloc(&d_keysB,  keyBytes));
+    CUDA_CHECK(cudaMalloc(&d_rng,    keyBytes));
+
+    CUDA_CHECK(cudaMemcpy(d_nodes, bvh.nodes.data(),       nodesBytes,  cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_tris,  scene.triangles.data(), trisBytes,   cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_mats,  hostMats.data(),        matsBytes,   cudaMemcpyHostToDevice));
+    if (pointsBytes) CUDA_CHECK(cudaMemcpy(d_points, scene.points.data(), pointsBytes, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemset(d_accum, 0, accumBytes));
+
+    DeviceScene s{};
+    s.nodes = d_nodes; s.tris = d_tris; s.mats = d_mats;
+    s.points = d_points; s.numPoints = (int)scene.points.size(); s.sun = scene.sun;
+
+    CameraGPU cam{};
+    cam.pos = vfrom(scene.camera.pos);
+    const float* m = scene.camera.cameraToWorld;
+    cam.fwd  = v3(m[0],  m[1],  m[2]);
+    cam.left = v3(m[4],  m[5],  m[6]);
+    cam.up   = v3(m[8],  m[9],  m[10]);
+    cam.tanHalfFov = tanf(scene.camera.fovYDeg * 0.5f * 3.14159265358979f / 180.0f);
+    cam.aspect = scene.camera.aspect;
+    cam.width  = outW;
+    cam.height = outH;
+
+    dim3 block2d(16, 16);
+    dim3 grid2d((outW + block2d.x - 1) / block2d.x, (outH + block2d.y - 1) / block2d.y);
+    int  block1d = 256;
+    int  grid1d  = (N + block1d - 1) / block1d;
+
+    cudaEvent_t t0, t1;
+    cudaEventCreate(&t0); cudaEventCreate(&t1);
+    cudaEventRecord(t0);
+
+    for (int sample = 0; sample < spp; ++sample)
+    {
+        gen_primary_kernel<<<grid2d, block2d>>>(cam, d_raysA, d_keysA, d_rng, sample);
+        CUDA_CHECK(cudaGetLastError());
+
+        thrust::sort_by_key(thrust::device_ptr<uint32_t>(d_keysA),
+                            thrust::device_ptr<uint32_t>(d_keysA + N),
+                            thrust::device_ptr<SortedRay>(d_raysA));
+
+        // Primary is bounce 0. With maxBounces=2 we also want bounces 1 and 2.
+        for (int b = 0; b <= maxBounces; ++b)
+        {
+            bool last = (b == maxBounces);
+            trace_and_bounce_kernel<<<grid1d, block1d>>>(s, d_raysA, (uint32_t)N, d_accum,
+                                                         last ? nullptr : d_raysB,
+                                                         last ? nullptr : d_keysB,
+                                                         d_rng, last);
+            CUDA_CHECK(cudaGetLastError());
+            if (last) break;
+
+            thrust::sort_by_key(thrust::device_ptr<uint32_t>(d_keysB),
+                                thrust::device_ptr<uint32_t>(d_keysB + N),
+                                thrust::device_ptr<SortedRay>(d_raysB));
+
+            std::swap(d_raysA, d_raysB);
+            std::swap(d_keysA, d_keysB);
+        }
+    }
+
+    tonemap_kernel<<<grid2d, block2d>>>(d_accum, d_image, outW, outH, 1.0f / (float)spp);
+    CUDA_CHECK(cudaGetLastError());
+
+    cudaEventRecord(t1);
+    CUDA_CHECK(cudaEventSynchronize(t1));
+    float ms = 0.0f;
+    cudaEventElapsedTime(&ms, t0, t1);
+    std::printf("kernel (sorted): %.1f ms  (%d x %d, %d spp, %d bounces, %zu tris)\n",
+                ms, outW, outH, spp, maxBounces, scene.triangles.size());
+
+    CUDA_CHECK(cudaMemcpy(outRGB.data(), d_image, imgBytes, cudaMemcpyDeviceToHost));
+
+    cudaFree(d_nodes); cudaFree(d_tris); cudaFree(d_mats);
+    if (d_points) cudaFree(d_points);
+    cudaFree(d_image); cudaFree(d_accum);
+    cudaFree(d_raysA); cudaFree(d_raysB);
+    cudaFree(d_keysA); cudaFree(d_keysB);
+    cudaFree(d_rng);
     for (size_t i = 0; i < texHandles.size(); ++i)
     {
         if (texHandles[i]) cudaDestroyTextureObject(texHandles[i]);

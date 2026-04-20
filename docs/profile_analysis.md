@@ -152,6 +152,41 @@ Low LDG count (5.4%) is misleading — memory instructions are "fat" in
 cycles, so a small count can still saturate L2 bandwidth, which is what
 ncu shows.
 
+## Ray-sort between bounces — measured, kept off
+
+ncu's top-ranked optimization lead for this kernel was "reduce uncoalesced
+global accesses (~70% estimated speedup)", with warp divergence after the
+first bounce as the root cause. Implemented the textbook fix — sort rays
+by direction Morton between bounces, process a sorted queue in a separate
+kernel — and benchmarked against the inline single-kernel baseline:
+
+| Mode | Kernel time (64 spp / 2 bounces) | PSNR vs engine | SSIM |
+|---|--:|--:|--:|
+| Inline, no sort *(default)* | 2,950 ms | 21.8 dB | 0.631 |
+| Multi-kernel + thrust sort (`--sort`) | **4,410 ms** (+50%) | 21.80 dB | 0.636 |
+
+Output matches within sampling noise, so the sort path is functionally
+correct; it's just slower on this hardware. Same reason the shmem BVH
+cache didn't help: **Ada's ~40 MB L2 already absorbs the repeat-access
+traffic the sort was meant to coalesce**, so the sort buys little L2
+relief while paying real costs:
+
+- 2 `thrust::sort_by_key` invocations per spp × 64 spp = 128 sorts over
+  1.5 M 40-byte records each.
+- 3 kernel launches per spp (primary + 2 bounce) instead of 1.
+- Scattered `atomicAdd` to the accumulator, because rays are sorted by
+  direction — not pixel — so pixel writes lose coalescence.
+- Register state (throughput, RNG) round-trips through global memory
+  between bounces instead of staying resident across the inline loop.
+
+ncu's 70% estimate assumed memory-latency-limited execution. The kernel is
+actually memory-*bandwidth*-limited on already-cached data, where sorting
+doesn't help.
+
+Kept in the code behind `--sort` because "built, measured, decided not
+to use" is a better answer than "planned and skipped". Full
+implementation lives in `src/pathtracer.cu` next to the default path.
+
 ## Tonemap A/B — kept sqrt + clamp
 
 Tried three output curves at 64 spp / 2 bounces:
