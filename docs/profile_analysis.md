@@ -2,7 +2,7 @@
 
 **Hardware:** NVIDIA GeForce RTX 4080 Laptop GPU (Ada Lovelace, SM 8.9, 58 SMs, 12 GB, ~40 MB L2)
 **Kernel:** `accumulate_kernel` — single launch, grid 108×54×1, block 16×16×1 (256 threads = 8 warps per block)
-**Workload:** 1728×864 pixels, 1.12M triangles, 810k BVH nodes, 8 spp, 2 indirect bounces
+**Workload:** 1728×864 pixels, 1.05M triangles, 810k BVH nodes, 8 spp, 2 indirect bounces
 **Captured with:** Nsight Compute 2026.1.1 `--set detailed --launch-count 1`
 
 Raw report: `nsight_compute_report.txt`. Binary: `../output/profile/accumulate.ncu-rep` (open in `ncu-ui`).

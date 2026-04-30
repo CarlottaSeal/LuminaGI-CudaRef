@@ -10,7 +10,7 @@ that show where the approximation drifts.
 |---|---|---|
 | ![engine](docs/engine.png) | ![reference](docs/reference.png) | ![heatmap](docs/heatmap.png) |
 
-*Test scene: 62 meshes, 1.12M triangles, 3 lights (1 sun + 2 point).*
+*Test scene: 62 meshes, 1.05M triangles, 3 lights (1 sun + 2 point).*
 
 ## Pipeline
 
@@ -43,7 +43,7 @@ Timings (test scene):
 
 | Stage | Time |
 |---|--:|
-| JSON load (1.1M tris, ~300 MB) | 12 s (host) |
+| JSON load (1.05M tris, ~300 MB) | 12 s (host) |
 | LBVH build (Morton + radix split) | 150 ms (CPU) |
 | Render kernel, direct only, 1 spp | **4 ms** |
 | Render kernel, 64 spp / 2 bounces | **3.0 s** |
@@ -72,9 +72,8 @@ raw report `docs/accumulate.ncu-rep`):
 | Branch Efficiency | 83.6% |
 
 Kernel is **L2-bandwidth bound**, not compute-bound. Working set lives in L2;
-DRAM barely touched. ncu's top optimization leads: reduce uncoalesced global
-accesses via ray sort (~70%), raise occupancy via register reduction (~50%),
-fix uncoalesced SMEM stack (~21%).
+DRAM barely touched. See [Optimizations](#optimizations) for which ncu leads were
+taken and which were tested and rejected.
 
 The remaining PSNR gap against LuminaGI is systematic — the engine has an
 ambient term and normal-map detail this reference doesn't model, and its
@@ -142,14 +141,10 @@ Four files under `SD/Engine` and `SD/LuminaGI`:
 - `App::RunFrame`: F9 sets a pending flag, capture runs *after* `EndFrame`
 - `AutomatedTesting`: `--screenshot` auto-dumps a matching `.json`
 
-The F9-after-EndFrame part was a bug first — calling `CaptureScreenshot`
-mid-frame closes and resets the command list, and the next
-`BindConstantBuffer` crashes. Deferring to post-present fixes it.
-
 ## Status
 
 - [x] Scene JSON dump from LuminaGI (F9 or `--screenshot`)
-- [x] Host scene loader + LBVH (Morton + radix, 150 ms / 1.12 M tris)
+- [x] Host scene loader + LBVH (Morton + radix, 150 ms / 1.05 M tris)
 - [x] CUDA path tracer: primary rays, BVH traversal, shadow rays
 - [x] Diffuse texture sampling (CUDA texture objects, sRGB decode, bilinear)
 - [x] Indirect bounces: cosine-weighted hemisphere, Russian roulette, progressive accumulation

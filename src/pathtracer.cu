@@ -330,9 +330,7 @@ __device__ vec3 trace_path(const DeviceScene& s, const BvhNode* s_top, Ray ray, 
     return L;
 }
 
-// launch_bounds(256, 4) caps the register budget at 65536/(256*4) = 64 regs/thread.
-// Without it, nvcc uses 76 regs and theoretical occupancy is stuck at 50% (reg-limited).
-// With 64 regs: 75% theoretical occupancy, no spills (+8 B stack), ~7% kernel speedup on the indoor-room test scene.
+// launch_bounds(256, 4) caps regs at 64; without it 76 regs caps occupancy at 50%. See docs/profile_analysis.md.
 __global__ __launch_bounds__(256, 4)
 void accumulate_kernel(DeviceScene s, CameraGPU cam, float* accum,
                                    int sppThisLaunch, int sampleBase, int maxBounces)
@@ -365,15 +363,8 @@ void accumulate_kernel(DeviceScene s, CameraGPU cam, float* accum,
     accum[i + 2] += sum.z;
 }
 
-// Intentionally uses sqrt(x) (≈ gamma 2.0) rather than a proper sRGB OETF or a
-// Reinhard curve. A/B measured against LuminaGI's screenshot (64 spp, 2 bounces):
-//   sqrt + clamp   (this):        PSNR 21.80 dB | SSIM 0.631
-//   Reinhard + sRGB:              PSNR 21.87 dB | SSIM 0.557
-//   sRGB only (no Reinhard):      PSNR 22.16 dB | SSIM 0.559
-// LuminaGI's backbuffer encode is closest to sqrt gamma, so "more correct"
-// tonemaps push the reference away from the engine and hurt SSIM. Kept sqrt
-// because the project's figure of merit is the diff against the engine, not
-// a particular display-referred encode.
+// sqrt + clamp matches LuminaGI's backbuffer encode (≈ gamma 2.0); Reinhard / sRGB
+// alternatives push reference away from engine and hurt SSIM. See docs/profile_analysis.md.
 __global__ void tonemap_kernel(const float* accum, uint8_t* image, int W, int H, float invSpp)
 {
     int px = blockIdx.x * blockDim.x + threadIdx.x;
