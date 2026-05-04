@@ -109,7 +109,7 @@ the top-level nodes were already in L2.
 6. **Branch Efficiency**: < 90% means real divergence. On Ada the cost
    shows up as `BSSY`/`BSYNC` convergence barriers in SASS.
 
-## Ada-specific features (mention-worthy in interview)
+## Ada-specific features worth knowing
 
 - **Shader Execution Reordering (SER)** — hardware sorts in-flight shader
   invocations by some key (material ID, ray type) before dispatch to reduce

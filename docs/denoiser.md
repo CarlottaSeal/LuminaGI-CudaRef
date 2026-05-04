@@ -32,8 +32,8 @@ training distribution:
 | 256 spp (naive baseline) | 13,400 ms | — | 13,400 ms | 49.57 dB | 0.991 | 0.51 / 255 |
 
 The denoiser closes roughly 80% of the PSNR gap between 8 spp and the
-256-spp baseline, at **~22× lower total time**. SSIM 0.964 is visually
-indistinguishable from the 256-spp version at typical viewing distance.
+256-spp baseline, at **~22× lower total time**. SSIM 0.964 reads as
+visually equivalent to the 256-spp version on a 1080p display.
 
 ## Pipeline
 
@@ -44,9 +44,9 @@ cuda_ref (8 spp, ~400 ms)  →  noisy.png  →  denoise.py (UNet, 197 ms)  →  
 ## Not in scope (left for future work)
 
 - **G-buffer aux input** (albedo + normal + depth) — industry denoisers
-  (OptiX, NRD) take these as separate channels and get materially better
-  results near surface transitions. Requires cuda_ref to emit a G-buffer
-  alongside the color pass.
+  (OptiX, NRD) take these as separate channels and resolve surface
+  transitions noticeably better than this RGB-only setup. Requires
+  cuda_ref to emit a G-buffer alongside the color pass.
 - **Temporal coherence** — a single-frame denoiser flickers under camera
   motion. Real-time denoisers are almost always temporal (TAA-style
   reprojection). Out of scope for a one-scene offline reference.

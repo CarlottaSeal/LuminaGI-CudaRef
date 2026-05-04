@@ -90,9 +90,9 @@ Two silent bugs the diff pipeline has caught:
 
 ## Neural denoiser (UNet on 8-spp output)
 
-256-spp takes ~13 s/frame on this hardware, most of it beating down Monte
+256-spp takes ~13 s/frame on this hardware, most of it spent on Monte
 Carlo noise. A small UNet trained on (8-spp noisy, 256-spp clean) pairs
-gets most of the way to the clean reference at a fraction of the cost.
+closes most of the gap to the 256-spp reference.
 
 | 8 spp (noisy) | 8 spp + UNet denoise | 1024 spp ground truth |
 |---|---|---|
