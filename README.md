@@ -106,7 +106,10 @@ closes most of the gap to the 256-spp reference.
 
 ~22× faster than the 256-spp baseline for ~80% of its PSNR gain over raw
 8 spp. Full setup + training recipe + caveats in
-[`docs/denoiser.md`](docs/denoiser.md).
+[`docs/denoiser.md`](docs/denoiser.md). Hyperparameter sanity checks (lr
+and epoch sweeps, including a late-training Adam divergence at epoch 83 of
+a 120-epoch run) in [`docs/lr_sweep.md`](docs/lr_sweep.md) and
+[`docs/epoch_sweep.md`](docs/epoch_sweep.md).
 
 Scripts: [`ml/gen_dataset.py`](ml/gen_dataset.py) →
 [`ml/train.py`](ml/train.py) → [`tools/denoise.py`](tools/denoise.py).
@@ -200,6 +203,8 @@ ml/
 docs/
   profile_analysis.md           measured findings, full metric tables
   denoiser.md                   UNet setup + results + caveats
+  lr_sweep.md                   lr=5e-4/1e-3/2e-3 comparison
+  epoch_sweep.md                epoch=40/80/120 comparison + Adam late-divergence note
   ada_microarch.md              SM 8.9 cheatsheet
   accumulate.ncu-rep            raw Nsight Compute report (open in ncu-ui)
   kernel.sass.txt               cuobjdump SASS dump
