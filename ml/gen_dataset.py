@@ -39,6 +39,8 @@ def main():
     ap.add_argument("--clean-spp",  type=int, default=256)
     ap.add_argument("--bounces",    type=int, default=2)
     ap.add_argument("--seed",       type=int, default=42)
+    ap.add_argument("--gbuffer",    action="store_true",
+                    help="also write per-pose albedo/normal/depth (next to clean PNG)")
     args = ap.parse_args()
 
     random.seed(args.seed)
@@ -66,6 +68,8 @@ def main():
 
     t0 = time.perf_counter()
     cmd = [str(CUDA_REF), str(scene_json), "--batch", str(batch_path)]
+    if args.gbuffer:
+        cmd.append("--gbuffer")
     r = subprocess.run(cmd, cwd=REPO)
     if r.returncode != 0:
         sys.exit("cuda_ref batch failed")

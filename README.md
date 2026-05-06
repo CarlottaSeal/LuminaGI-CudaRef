@@ -109,11 +109,36 @@ closes most of the gap to the 256-spp reference.
 [`docs/denoiser.md`](docs/denoiser.md). Hyperparameter sanity checks (lr
 and epoch sweeps, including a late-training Adam divergence at epoch 83 of
 a 120-epoch run) in [`docs/lr_sweep.md`](docs/lr_sweep.md) and
-[`docs/epoch_sweep.md`](docs/epoch_sweep.md).
+[`docs/epoch_sweep.md`](docs/epoch_sweep.md). VGG perceptual loss was
+tried at three weights and regressed both PSNR and SSIM — write-up in
+[`docs/perceptual_sweep.md`](docs/perceptual_sweep.md).
 
 Scripts: [`ml/gen_dataset.py`](ml/gen_dataset.py) →
 [`ml/train.py`](ml/train.py) → [`tools/denoise.py`](tools/denoise.py).
 Uses `cuda_ref --batch` to amortise scene load across all renders.
+
+## Inference backends
+
+The trained PyTorch checkpoint exports cleanly to ONNX (opset 17, dynamic
+N/H/W). Same model, four backends, same held-out 1728×864 frame:
+
+| Backend | ms / inference | Max abs diff vs PyTorch FP32 | PNG PSNR | SSIM |
+|---|--:|--:|--:|--:|
+| PyTorch CUDA FP32 | 46.1 | 0 | 42.04 | 0.964 |
+| ONNX Runtime CUDA EP FP32 | 56.3 | 0 (bitwise) | 42.04 | 0.964 |
+| ONNX Runtime CPU EP FP32 | 590.6 | 9.09e-06 | 42.04 | 0.964 |
+| **TensorRT FP16** | **18.4** | 5.72e-04 | **42.04** | **0.964** |
+
+TRT FP16 is **~2.5× faster than PyTorch CUDA** with output that's
+indistinguishable at the PNG quantisation floor. Build steps and the
+CUDA-12-on-system-CUDA-13 DLL workaround are in
+[`docs/onnx_export.md`](docs/onnx_export.md).
+
+```
+python tools/export_onnx.py        ml/runs/denoiser.pt  ml/runs/denoiser.onnx
+python tools/build_trt_engine.py   ml/runs/denoiser.onnx ml/runs/denoiser.trt --fp16
+python tools/denoise_trt.py        ml/runs/denoiser.trt  noisy.png  out.png
+```
 
 ## Optimizations
 
@@ -154,6 +179,10 @@ Four files under `SD/Engine` and `SD/LuminaGI`:
 - [x] Image diff (PSNR / SSIM / heatmap), HTML report, validate.py
 - [x] Nsight Compute profile + SASS histogram
 - [x] Ray sort between bounces ([`--sort`](docs/profile_analysis.md#ray-sort-between-bounces--measured-kept-off); implemented, measured +50% slower, kept as a toggle)
+- [x] ONNX export (opset 17, dynamic N/H/W, ORT CUDA EP bitwise parity vs PyTorch)
+- [x] TensorRT FP16 engine (2.5× speedup, identical PNG output)
+- [x] Primary-hit G-buffer kernel (albedo / normal / depth, fed back into the UNet input)
+- [x] L2 persisting-cache window for BVH (`CUDAREF_L2_PIN=1`, opt-in env var)
 - [ ] Binary scene format (JSON parse is 12 s)
 - [ ] Variance-aware adaptive sampling
 
@@ -193,21 +222,28 @@ src/
   main.cpp           driver (argv -> render -> PNG), --batch mode
   test_load_scene.cpp / test_bvh.cpp   pure-host sanity tests
 tools/
-  diff.py       PSNR / SSIM / heatmap -> HTML report
-  validate.py   end-to-end wrapper: cuda_ref.exe + diff.py
-  denoise.py    load UNet checkpoint -> denoise a PNG
+  diff.py             PSNR / SSIM / heatmap -> HTML report
+  validate.py         end-to-end wrapper: cuda_ref.exe + diff.py
+  denoise.py          PyTorch UNet inference on a PNG
+  export_onnx.py      .pt -> .onnx (opset 17, dynamic N/H/W)
+  denoise_onnx.py     ONNX Runtime inference (CUDA EP) + PyTorch parity
+  build_trt_engine.py .onnx -> .trt (FP16 / FP32, optimisation profile)
+  denoise_trt.py      TensorRT engine inference + PyTorch parity
+  eval_checkpoints.py PSNR/SSIM table over a list of .pt files
 ml/
-  gen_dataset.py  roll random cameras, render (noisy, clean) pairs via --batch
-  train.py        UNet training (PyTorch)
-  runs/           trained checkpoints
+  gen_dataset.py      roll random cameras, render (noisy, clean) pairs via --batch (--gbuffer optional)
+  train.py            UNet training (PyTorch); --perceptual-weight, --gbuffer
+  runs/               trained checkpoints
 docs/
-  profile_analysis.md           measured findings, full metric tables
-  denoiser.md                   UNet setup + results + caveats
-  lr_sweep.md                   lr=5e-4/1e-3/2e-3 comparison
-  epoch_sweep.md                epoch=40/80/120 comparison + Adam late-divergence note
-  ada_microarch.md              SM 8.9 cheatsheet
-  accumulate.ncu-rep            raw Nsight Compute report (open in ncu-ui)
-  kernel.sass.txt               cuobjdump SASS dump
+  profile_analysis.md   measured findings, full metric tables
+  denoiser.md           UNet setup + results + caveats
+  lr_sweep.md           lr=5e-4/1e-3/2e-3 comparison
+  epoch_sweep.md        epoch=40/80/120 + Adam late-divergence note
+  perceptual_sweep.md   λ=0.05/0.1/0.2 negative result + 3 candidate causes
+  onnx_export.md        ONNX / TRT parity table + CUDA-12 DLL pinning trick
+  ada_microarch.md      SM 8.9 cheatsheet
+  accumulate.ncu-rep    raw Nsight Compute report (open in ncu-ui)
+  kernel.sass.txt       cuobjdump SASS dump
 third_party/
   nlohmann/json.hpp, stb_image.h, stb_image_write.h
 ```

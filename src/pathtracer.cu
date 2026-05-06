@@ -363,6 +363,47 @@ void accumulate_kernel(DeviceScene s, CameraGPU cam, float* accum,
     accum[i + 2] += sum.z;
 }
 
+// Primary-hit aux buffers: albedo, encoded normal, 1/(1+t) depth (3 PNGs).
+__global__ void gbuffer_kernel(DeviceScene s, CameraGPU cam,
+                               uint8_t* albedo_out, uint8_t* normal_out, uint8_t* depth_out)
+{
+    __shared__ BvhNode s_top[kShmemBvhNodes];
+    int linearTid = threadIdx.y * blockDim.x + threadIdx.x;
+    if (linearTid < kShmemBvhNodes) s_top[linearTid] = s.nodes[linearTid];
+    __syncthreads();
+
+    int px = blockIdx.x * blockDim.x + threadIdx.x;
+    int py = blockIdx.y * blockDim.y + threadIdx.y;
+    if (px >= cam.width || py >= cam.height) return;
+
+    Ray r = primary_ray(cam, px, py, 0.5f, 0.5f);
+    float hitT, hitU, hitV;
+    vec3 N;
+    int tri = traverse_closest(s, s_top, r, 1e30f, hitT, N, hitU, hitV);
+    int i = (py * cam.width + px) * 3;
+
+    if (tri < 0)
+    {
+        albedo_out[i + 0] = albedo_out[i + 1] = albedo_out[i + 2] = 0;
+        // (0,0,1) encoded -> (128,128,255)
+        normal_out[i + 0] = 128; normal_out[i + 1] = 128; normal_out[i + 2] = 255;
+        depth_out[i + 0]  = depth_out[i + 1]  = depth_out[i + 2]  = 0;  // far / sky -> 0
+        return;
+    }
+    if (dot(N, r.d) > 0.0f) N = vmul(N, -1.0f);
+
+    const DeviceMaterial& m = s.mats[s.tris[tri].material];
+    vec3 a = sample_albedo(m, hitU, hitV);
+    auto enc = [] (float v) { return (uint8_t)(fminf(1.0f, fmaxf(0.0f, v)) * 255.0f); };
+
+    albedo_out[i + 0] = enc(a.x); albedo_out[i + 1] = enc(a.y); albedo_out[i + 2] = enc(a.z);
+    normal_out[i + 0] = enc(N.x * 0.5f + 0.5f);
+    normal_out[i + 1] = enc(N.y * 0.5f + 0.5f);
+    normal_out[i + 2] = enc(N.z * 0.5f + 0.5f);
+    uint8_t d = enc(1.0f / (1.0f + hitT));  // near -> 255, far -> 0
+    depth_out[i + 0] = depth_out[i + 1] = depth_out[i + 2] = d;
+}
+
 // sqrt + clamp matches LuminaGI's backbuffer encode (≈ gamma 2.0); Reinhard / sRGB
 // alternatives push reference away from engine and hurt SSIM. See docs/profile_analysis.md.
 __global__ void tonemap_kernel(const float* accum, uint8_t* image, int W, int H, float invSpp)
@@ -533,11 +574,17 @@ static bool load_texture_to_device(const std::string& fullPath,
 
 void RenderSceneCUDA(const Scene& scene, const Bvh& bvh, const std::string& assetRoot,
                      int spp, int maxBounces,
-                     std::vector<uint8_t>& outRGB, int& outW, int& outH)
+                     std::vector<uint8_t>& outRGB, int& outW, int& outH,
+                     std::vector<uint8_t>* outAlbedo,
+                     std::vector<uint8_t>* outNormal,
+                     std::vector<uint8_t>* outDepth)
 {
     outW = scene.camera.imageWidth;
     outH = scene.camera.imageHeight;
     outRGB.assign((size_t)outW * outH * 3, 0);
+    if (outAlbedo) outAlbedo->assign((size_t)outW * outH * 3, 0);
+    if (outNormal) outNormal->assign((size_t)outW * outH * 3, 0);
+    if (outDepth)  outDepth ->assign((size_t)outW * outH * 3, 0);
 
     std::vector<cudaArray_t>         texArrays(scene.materials.size(), nullptr);
     std::vector<cudaTextureObject_t> texHandles(scene.materials.size(), 0);
@@ -619,6 +666,26 @@ void RenderSceneCUDA(const Scene& scene, const Bvh& bvh, const std::string& asse
 
     // Split samples into chunks to stay comfortably under Windows TDR.
     const int kChunk = 8;
+    // CUDAREF_L2_PIN=1 pins BVH region in Ada's persisting-L2 slice via the
+    // stream access-policy window — env var keeps the A/B knob out of CMake.
+    const char* l2env = std::getenv("CUDAREF_L2_PIN");
+    bool l2pin = l2env && std::atoi(l2env);
+    if (l2pin)
+    {
+        int dev = 0; cudaGetDevice(&dev);
+        size_t l2max = 0;
+        cudaDeviceGetAttribute((int*)&l2max, cudaDevAttrMaxPersistingL2CacheSize, dev);
+        size_t pinBytes = nodesBytes < l2max ? nodesBytes : l2max;
+        cudaStreamAttrValue attr{};
+        attr.accessPolicyWindow.base_ptr  = d_nodes;
+        attr.accessPolicyWindow.num_bytes = pinBytes;
+        attr.accessPolicyWindow.hitRatio  = 1.0f;
+        attr.accessPolicyWindow.hitProp   = cudaAccessPropertyPersisting;
+        attr.accessPolicyWindow.missProp  = cudaAccessPropertyStreaming;
+        CUDA_CHECK(cudaStreamSetAttribute(0, cudaStreamAttributeAccessPolicyWindow, &attr));
+        std::printf("L2 pin: BVH %zu / %zu bytes (hitRatio=1.0)\n", pinBytes, nodesBytes);
+    }
+
     cudaEvent_t t0, t1;
     cudaEventCreate(&t0); cudaEventCreate(&t1);
     cudaEventRecord(t0);
@@ -635,6 +702,13 @@ void RenderSceneCUDA(const Scene& scene, const Bvh& bvh, const std::string& asse
     cudaEventRecord(t1);
     CUDA_CHECK(cudaEventSynchronize(t1));
 
+    if (l2pin)
+    {
+        cudaStreamAttrValue attr{};
+        CUDA_CHECK(cudaStreamSetAttribute(0, cudaStreamAttributeAccessPolicyWindow, &attr));
+        cudaCtxResetPersistingL2Cache();
+    }
+
     float ms = 0;
     cudaEventElapsedTime(&ms, t0, t1);
     std::printf("kernel: %.1f ms  (%d x %d, %d spp, %d bounces, %zu tris)\n",
@@ -642,6 +716,21 @@ void RenderSceneCUDA(const Scene& scene, const Bvh& bvh, const std::string& asse
 
     CUDA_CHECK(cudaMemcpy(outRGB.data(), d_image, imgBytes, cudaMemcpyDeviceToHost));
     cudaFree(d_accum);
+
+    if (outAlbedo && outNormal && outDepth)
+    {
+        uint8_t *d_alb = nullptr, *d_nrm = nullptr, *d_dep = nullptr;
+        CUDA_CHECK(cudaMalloc(&d_alb, imgBytes));
+        CUDA_CHECK(cudaMalloc(&d_nrm, imgBytes));
+        CUDA_CHECK(cudaMalloc(&d_dep, imgBytes));
+        gbuffer_kernel<<<grid, block>>>(s, cam, d_alb, d_nrm, d_dep);
+        CUDA_CHECK(cudaGetLastError());
+        CUDA_CHECK(cudaDeviceSynchronize());
+        CUDA_CHECK(cudaMemcpy(outAlbedo->data(), d_alb, imgBytes, cudaMemcpyDeviceToHost));
+        CUDA_CHECK(cudaMemcpy(outNormal->data(), d_nrm, imgBytes, cudaMemcpyDeviceToHost));
+        CUDA_CHECK(cudaMemcpy(outDepth ->data(), d_dep, imgBytes, cudaMemcpyDeviceToHost));
+        cudaFree(d_alb); cudaFree(d_nrm); cudaFree(d_dep);
+    }
 
     cudaFree(d_nodes); cudaFree(d_tris); cudaFree(d_mats);
     if (d_points) cudaFree(d_points);

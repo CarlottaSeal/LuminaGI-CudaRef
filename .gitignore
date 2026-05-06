@@ -21,3 +21,6 @@ ml/data/noisy/
 ml/data/clean/
 !ml/data/batch.txt
 
+# TensorRT engines are GPU-specific; keep .onnx as the portable artifact.
+*.trt
+

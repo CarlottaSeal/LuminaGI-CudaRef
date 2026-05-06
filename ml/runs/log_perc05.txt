@@ -1,0 +1,85 @@
+device: cuda NVIDIA GeForce RTX 4080 Laptop GPU
+train: 40  val: 10
+params: 1.95 M
+perceptual: VGG16 relu1_2/relu2_2/relu3_3, weight=0.05
+epoch   1/80  train_l1=0.1076  train_perc=1.6944  val_l1=0.0577  *
+epoch   2/80  train_l1=0.0479  train_perc=1.4834  val_l1=0.0556  *
+epoch   3/80  train_l1=0.0391  train_perc=1.4164  val_l1=0.0249  *
+epoch   4/80  train_l1=0.0258  train_perc=1.4320  val_l1=0.0298
+epoch   5/80  train_l1=0.0193  train_perc=1.2968  val_l1=0.0229  *
+epoch   6/80  train_l1=0.0191  train_perc=1.3663  val_l1=0.0161  *
+epoch   7/80  train_l1=0.0178  train_perc=1.3620  val_l1=0.0151  *
+epoch   8/80  train_l1=0.0171  train_perc=1.3120  val_l1=0.0159
+epoch   9/80  train_l1=0.0165  train_perc=1.3625  val_l1=0.0180
+epoch  10/80  train_l1=0.0162  train_perc=1.2911  val_l1=0.0155
+epoch  11/80  train_l1=0.0162  train_perc=1.2673  val_l1=0.0176
+epoch  12/80  train_l1=0.0152  train_perc=1.2459  val_l1=0.0131  *
+epoch  13/80  train_l1=0.0148  train_perc=1.1977  val_l1=0.0148
+epoch  14/80  train_l1=0.0132  train_perc=1.0737  val_l1=0.0133
+epoch  15/80  train_l1=0.0158  train_perc=1.0511  val_l1=0.0154
+epoch  16/80  train_l1=0.0162  train_perc=0.9716  val_l1=0.0129  *
+epoch  17/80  train_l1=0.0132  train_perc=0.8967  val_l1=0.0126  *
+epoch  18/80  train_l1=0.0120  train_perc=0.9090  val_l1=0.0093  *
+epoch  19/80  train_l1=0.0111  train_perc=0.8806  val_l1=0.0090  *
+epoch  20/80  train_l1=0.0104  train_perc=0.8124  val_l1=0.0124
+epoch  21/80  train_l1=0.0100  train_perc=0.8303  val_l1=0.0085  *
+epoch  22/80  train_l1=0.0102  train_perc=0.8631  val_l1=0.0084  *
+epoch  23/80  train_l1=0.0091  train_perc=0.7995  val_l1=0.0084
+epoch  24/80  train_l1=0.0094  train_perc=0.7997  val_l1=0.0093
+epoch  25/80  train_l1=0.0097  train_perc=0.7628  val_l1=0.0111
+epoch  26/80  train_l1=0.0116  train_perc=0.8219  val_l1=0.0086
+epoch  27/80  train_l1=0.0102  train_perc=0.8098  val_l1=0.0087
+epoch  28/80  train_l1=0.0090  train_perc=0.7696  val_l1=0.0092
+epoch  29/80  train_l1=0.0099  train_perc=0.8368  val_l1=0.0095
+epoch  30/80  train_l1=0.0099  train_perc=0.7901  val_l1=0.0094
+epoch  31/80  train_l1=0.0094  train_perc=0.7852  val_l1=0.0077  *
+epoch  32/80  train_l1=0.0080  train_perc=0.7548  val_l1=0.0086
+epoch  33/80  train_l1=0.0080  train_perc=0.7315  val_l1=0.0066  *
+epoch  34/80  train_l1=0.0086  train_perc=0.7497  val_l1=0.0077
+epoch  35/80  train_l1=0.0082  train_perc=0.7425  val_l1=0.0075
+epoch  36/80  train_l1=0.0089  train_perc=0.7682  val_l1=0.0082
+epoch  37/80  train_l1=0.0079  train_perc=0.7092  val_l1=0.0084
+epoch  38/80  train_l1=0.0082  train_perc=0.7087  val_l1=0.0074
+epoch  39/80  train_l1=0.0084  train_perc=0.7450  val_l1=0.0087
+epoch  40/80  train_l1=0.0091  train_perc=0.7611  val_l1=0.0082
+epoch  41/80  train_l1=0.0082  train_perc=0.7138  val_l1=0.0084
+epoch  42/80  train_l1=0.0087  train_perc=0.7369  val_l1=0.0087
+epoch  43/80  train_l1=0.0087  train_perc=0.7351  val_l1=0.0079
+epoch  44/80  train_l1=0.0078  train_perc=0.7291  val_l1=0.0089
+epoch  45/80  train_l1=0.0085  train_perc=0.7308  val_l1=0.0079
+epoch  46/80  train_l1=0.0077  train_perc=0.7003  val_l1=0.0073
+epoch  47/80  train_l1=0.0079  train_perc=0.7091  val_l1=0.0067
+epoch  48/80  train_l1=0.0075  train_perc=0.7008  val_l1=0.0068
+epoch  49/80  train_l1=0.0074  train_perc=0.6799  val_l1=0.0076
+epoch  50/80  train_l1=0.0077  train_perc=0.7247  val_l1=0.0066
+epoch  51/80  train_l1=0.0076  train_perc=0.6895  val_l1=0.0065  *
+epoch  52/80  train_l1=0.0072  train_perc=0.6841  val_l1=0.0079
+epoch  53/80  train_l1=0.0087  train_perc=0.7220  val_l1=0.0065  *
+epoch  54/80  train_l1=0.0079  train_perc=0.6932  val_l1=0.0070
+epoch  55/80  train_l1=0.0082  train_perc=0.7586  val_l1=0.0070
+epoch  56/80  train_l1=0.0074  train_perc=0.6882  val_l1=0.0071
+epoch  57/80  train_l1=0.0073  train_perc=0.6682  val_l1=0.0075
+epoch  58/80  train_l1=0.0073  train_perc=0.6704  val_l1=0.0064  *
+epoch  59/80  train_l1=0.0074  train_perc=0.7140  val_l1=0.0078
+epoch  60/80  train_l1=0.0076  train_perc=0.7010  val_l1=0.0066
+epoch  61/80  train_l1=0.0075  train_perc=0.6942  val_l1=0.0070
+epoch  62/80  train_l1=0.0075  train_perc=0.7058  val_l1=0.0072
+epoch  63/80  train_l1=0.0073  train_perc=0.7143  val_l1=0.0068
+epoch  64/80  train_l1=0.0075  train_perc=0.7100  val_l1=0.0072
+epoch  65/80  train_l1=0.0073  train_perc=0.7084  val_l1=0.0060  *
+epoch  66/80  train_l1=0.0069  train_perc=0.6627  val_l1=0.0064
+epoch  67/80  train_l1=0.0067  train_perc=0.6446  val_l1=0.0071
+epoch  68/80  train_l1=0.0089  train_perc=0.8170  val_l1=0.0106
+epoch  69/80  train_l1=0.0111  train_perc=0.7864  val_l1=0.0076
+epoch  70/80  train_l1=0.0099  train_perc=0.7633  val_l1=0.0133
+epoch  71/80  train_l1=0.0116  train_perc=0.8185  val_l1=0.0111
+epoch  72/80  train_l1=0.0333  train_perc=1.0431  val_l1=0.0206
+epoch  73/80  train_l1=0.0423  train_perc=1.0547  val_l1=0.0625
+epoch  74/80  train_l1=0.0794  train_perc=1.4872  val_l1=0.0818
+epoch  75/80  train_l1=0.1015  train_perc=1.3801  val_l1=0.0971
+epoch  76/80  train_l1=0.0974  train_perc=1.3842  val_l1=0.1062
+epoch  77/80  train_l1=0.1003  train_perc=1.4289  val_l1=0.0899
+epoch  78/80  train_l1=0.1016  train_perc=1.3752  val_l1=0.0668
+epoch  79/80  train_l1=0.0885  train_perc=1.3339  val_l1=0.1264
+epoch  80/80  train_l1=0.0979  train_perc=1.4047  val_l1=0.0893
+best val L1: 0.0060  saved: ml\runs\perc05.pt

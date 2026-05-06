@@ -18,7 +18,10 @@
 
 void RenderSceneCUDA(const Scene& scene, const Bvh& bvh, const std::string& assetRoot,
                      int spp, int maxBounces,
-                     std::vector<uint8_t>& outRGB, int& outW, int& outH);
+                     std::vector<uint8_t>& outRGB, int& outW, int& outH,
+                     std::vector<uint8_t>* outAlbedo = nullptr,
+                     std::vector<uint8_t>* outNormal = nullptr,
+                     std::vector<uint8_t>* outDepth  = nullptr);
 void RenderSceneCUDASorted(const Scene& scene, const Bvh& bvh, const std::string& assetRoot,
                            int spp, int maxBounces,
                            std::vector<uint8_t>& outRGB, int& outW, int& outH);
@@ -96,6 +99,7 @@ int main(int argc, char** argv)
     int spp = 64;
     int bounces = 2;
     bool useSort = false;
+    bool gbuffer = false;
 
     bool  haveCamPos = false, haveCamTgt = false;
     float camPos[3] = {0,0,0};
@@ -117,6 +121,7 @@ int main(int argc, char** argv)
         else if (a == "--asset-root" && i + 1 < argc) assetRoot = argv[++i];
         else if (a == "-o" && i + 1 < argc)         pngPath = argv[++i];
         else if (a == "--sort")                     useSort = true;
+        else if (a == "--gbuffer")                  gbuffer = true;
         else if (a == "--cam-pos")                  haveCamPos = read_vec3(i, camPos);
         else if (a == "--cam-target")               haveCamTgt = read_vec3(i, camTgt);
         else if (a == "--batch" && i + 1 < argc)    batchFile = argv[++i];
@@ -160,12 +165,23 @@ int main(int argc, char** argv)
         {
             const BatchJob& j = jobs[k];
             overwrite_camera(scene, j.cam_pos, j.cam_tgt);
-            std::vector<uint8_t> rgb; int W = 0, H = 0;
+            std::vector<uint8_t> rgb, alb, nrm, dep; int W = 0, H = 0;
             auto t0 = std::chrono::steady_clock::now();
-            RenderSceneCUDA(scene, bvh_batch, assetRoot, j.spp, j.bounces, rgb, W, H);
+            RenderSceneCUDA(scene, bvh_batch, assetRoot, j.spp, j.bounces, rgb, W, H,
+                            gbuffer ? &alb : nullptr,
+                            gbuffer ? &nrm : nullptr,
+                            gbuffer ? &dep : nullptr);
             auto t1 = std::chrono::steady_clock::now();
             std::filesystem::create_directories(std::filesystem::path(j.out_png).parent_path());
             stbi_write_png(j.out_png.c_str(), W, H, 3, rgb.data(), W * 3);
+            if (gbuffer)
+            {
+                std::filesystem::path p(j.out_png);
+                std::string stem = (p.parent_path() / p.stem()).string();
+                stbi_write_png((stem + ".albedo.png").c_str(), W, H, 3, alb.data(), W * 3);
+                stbi_write_png((stem + ".normal.png").c_str(), W, H, 3, nrm.data(), W * 3);
+                stbi_write_png((stem + ".depth.png").c_str(),  W, H, 3, dep.data(), W * 3);
+            }
             std::printf("[%zu/%zu] %s  spp=%d  render=%.1f ms\n",
                         k + 1, jobs.size(), j.out_png.c_str(), j.spp,
                         std::chrono::duration<double, std::milli>(t1 - t0).count());

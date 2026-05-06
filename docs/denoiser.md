@@ -52,9 +52,17 @@ cuda_ref (8 spp, ~400 ms)  →  noisy.png  →  denoise.py (UNet, 197 ms)  →  
   reprojection). Out of scope for a one-scene offline reference.
 - **Kernel-prediction architecture** (vs direct prediction) — edges
   better preserved, but larger code footprint.
-- **CUDA inference** — inference currently goes through PyTorch; an
-  ONNX → TensorRT path would shrink the 197 ms further. Skipped so the
-  pipeline stays one Python wrapper.
+- **TensorRT engine** — the model is now exported to ONNX
+  (see `onnx_export.md`); ONNX Runtime CUDA EP runs at 56 ms vs PyTorch
+  CUDA's 46 ms with bitwise-identical output. A `trtexec` build for
+  FP16 would drop further but adds a second build dependency.
 - **Generalisation to other scenes** — trained on 50 poses in one
   indoor-room scene. A scene-independent denoiser needs a much larger,
   more varied training set (this is what production denoisers do).
+
+## Variants tried that did not help
+
+A VGG perceptual loss sweep (λ ∈ {0.05, 0.1, 0.2}, otherwise identical
+training) regressed both PSNR and SSIM at every weight tested — the
+opposite of the expected "trade PSNR for SSIM" outcome. Full table and
+analysis in [`perceptual_sweep.md`](perceptual_sweep.md).

@@ -24,8 +24,11 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=True)
-    base = ckpt.get("base", 32)
-    model = UNet(base=base).to(device).eval()
+    base  = ckpt.get("base", 32)
+    in_ch = ckpt.get("in_ch", 3)
+    if in_ch != 3:
+        sys.exit(f"checkpoint expects {in_ch}-ch input; not supported by this script")
+    model = UNet(base=base, in_ch=in_ch).to(device).eval()
     model.load_state_dict(ckpt["model"])
 
     img = np.asarray(Image.open(args.noisy_png).convert("RGB"), dtype=np.float32) / 255.0
