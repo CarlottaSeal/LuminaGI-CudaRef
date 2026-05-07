@@ -1,0 +1,306 @@
+[scene] loaded C:\p4\Personal\SD\LuminaGI\Run\Screenshots\manual_20260506_183748.json
+  camera: 1920x1200, fov 60.0 deg, pos (3.12,-1.77,0.87)
+  1 directional + 2 point lights, 4 materials, 1116392 triangles
+batch: 100 jobs  (scene+bvh loaded once in 268.4 ms)
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 619.1 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[1/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0000.png  spp=8  render=943.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 21813.4 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[2/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0000.png  spp=256  render=22006.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 692.9 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[3/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0001.png  spp=8  render=894.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 21230.0 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[4/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0001.png  spp=256  render=21428.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 397.7 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[5/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0002.png  spp=8  render=658.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 9579.9 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[6/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0002.png  spp=256  render=9792.7 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 553.9 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[7/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0003.png  spp=8  render=760.8 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 19649.6 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[8/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0003.png  spp=256  render=19872.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 254.5 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[9/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0004.png  spp=8  render=498.0 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 4489.0 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[10/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0004.png  spp=256  render=4707.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 596.9 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[11/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0005.png  spp=8  render=841.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 21184.5 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[12/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0005.png  spp=256  render=21424.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 372.5 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[13/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0006.png  spp=8  render=640.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 8999.0 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[14/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0006.png  spp=256  render=9255.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 728.3 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[15/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0007.png  spp=8  render=997.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 23536.4 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[16/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0007.png  spp=256  render=23793.8 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 816.8 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[17/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0008.png  spp=8  render=1075.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 23812.1 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[18/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0008.png  spp=256  render=24055.2 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 768.1 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[19/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0009.png  spp=8  render=1035.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 22272.8 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[20/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0009.png  spp=256  render=22546.0 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 687.0 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[21/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0010.png  spp=8  render=965.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 20332.4 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[22/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0010.png  spp=256  render=20591.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 702.6 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[23/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0011.png  spp=8  render=973.2 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 22008.1 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[24/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0011.png  spp=256  render=22282.2 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 462.1 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[25/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0012.png  spp=8  render=735.8 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 8593.2 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[26/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0012.png  spp=256  render=8843.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 603.5 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[27/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0013.png  spp=8  render=856.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 22539.8 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[28/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0013.png  spp=256  render=22800.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 748.4 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[29/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0014.png  spp=8  render=1052.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 23815.3 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[30/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0014.png  spp=256  render=24107.8 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 851.9 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[31/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0015.png  spp=8  render=1250.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 25541.0 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[32/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0015.png  spp=256  render=25854.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 744.8 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[33/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0016.png  spp=8  render=1113.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 22841.1 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[34/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0016.png  spp=256  render=23158.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 891.2 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[35/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0017.png  spp=8  render=1236.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 26119.2 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[36/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0017.png  spp=256  render=26433.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 645.6 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[37/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0018.png  spp=8  render=901.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 17524.6 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[38/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0018.png  spp=256  render=17811.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 631.2 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[39/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0019.png  spp=8  render=965.8 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 23657.1 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[40/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0019.png  spp=256  render=23932.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 777.4 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[41/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0020.png  spp=8  render=1085.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 23144.1 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[42/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0020.png  spp=256  render=23440.0 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 799.6 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[43/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0021.png  spp=8  render=1098.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 23242.8 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[44/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0021.png  spp=256  render=23513.8 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 668.9 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[45/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0022.png  spp=8  render=945.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 19263.9 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[46/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0022.png  spp=256  render=19513.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 353.1 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[47/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0023.png  spp=8  render=643.7 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 10952.8 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[48/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0023.png  spp=256  render=11243.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 500.4 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[49/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0024.png  spp=8  render=770.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 12305.3 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[50/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0024.png  spp=256  render=12565.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 619.9 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[51/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0025.png  spp=8  render=886.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 22299.6 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[52/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0025.png  spp=256  render=22634.7 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 804.6 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[53/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0026.png  spp=8  render=1107.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 22635.4 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[54/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0026.png  spp=256  render=22941.2 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 896.3 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[55/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0027.png  spp=8  render=1192.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 23092.2 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[56/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0027.png  spp=256  render=23371.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 554.4 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[57/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0028.png  spp=8  render=840.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 12726.4 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[58/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0028.png  spp=256  render=13029.8 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 359.4 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[59/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0029.png  spp=8  render=656.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 10136.3 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[60/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0029.png  spp=256  render=10438.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 383.0 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[61/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0030.png  spp=8  render=671.2 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 8219.2 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[62/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0030.png  spp=256  render=8477.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 243.3 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[63/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0031.png  spp=8  render=501.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 9373.2 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[64/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0031.png  spp=256  render=9651.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 705.0 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[65/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0032.png  spp=8  render=1036.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 19525.4 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[66/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0032.png  spp=256  render=19830.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 624.4 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[67/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0033.png  spp=8  render=933.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 24591.1 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[68/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0033.png  spp=256  render=24872.7 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 461.9 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[69/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0034.png  spp=8  render=805.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 12330.0 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[70/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0034.png  spp=256  render=12664.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 839.3 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[71/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0035.png  spp=8  render=1109.2 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 23577.8 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[72/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0035.png  spp=256  render=23851.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 316.5 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[73/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0036.png  spp=8  render=580.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 5924.4 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[74/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0036.png  spp=256  render=6181.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 648.2 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[75/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0037.png  spp=8  render=923.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 25947.8 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[76/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0037.png  spp=256  render=26247.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 889.0 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[77/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0038.png  spp=8  render=1169.2 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 24830.3 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[78/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0038.png  spp=256  render=25132.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 316.5 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[79/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0039.png  spp=8  render=596.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 13253.2 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[80/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0039.png  spp=256  render=13571.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 953.8 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[81/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0040.png  spp=8  render=1264.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 26667.8 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[82/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0040.png  spp=256  render=26943.7 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 470.3 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[83/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0041.png  spp=8  render=756.8 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 12634.1 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[84/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0041.png  spp=256  render=12969.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 938.1 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[85/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0042.png  spp=8  render=1273.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 24170.2 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[86/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0042.png  spp=256  render=24497.5 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 367.5 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[87/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0043.png  spp=8  render=673.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 8003.3 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[88/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0043.png  spp=256  render=8257.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 272.4 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[89/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0044.png  spp=8  render=525.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 10984.7 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[90/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0044.png  spp=256  render=11284.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 413.7 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[91/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0045.png  spp=8  render=681.1 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 10283.0 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[92/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0045.png  spp=256  render=10582.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 796.5 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[93/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0046.png  spp=8  render=1093.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 22947.1 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[94/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0046.png  spp=256  render=23225.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 846.1 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[95/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0047.png  spp=8  render=1134.6 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 24614.6 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[96/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0047.png  spp=256  render=24937.4 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 479.9 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[97/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0048.png  spp=8  render=872.3 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 12217.4 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[98/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0048.png  spp=256  render=12487.9 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 667.4 ms  (1920 x 1200, 8 spp, 2 bounces, 1116392 tris)
+[99/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/noisy/0049.png  spp=8  render=951.8 ms
+textures: 4 loaded, 0 missing (of 4 materials)
+kernel: 21677.2 ms  (1920 x 1200, 256 spp, 2 bounces, 1116392 tris)
+[100/100] C:/p4/Personal/Tools/LuminaGI-CudaRef/ml/data_gb/clean/0049.png  spp=256  render=22000.6 ms
+wrote C:\p4\Personal\Tools\LuminaGI-CudaRef\ml\data_gb\batch.txt  (100 render jobs)
+done: 100 renders in 1172.9s  (11.73s per render)

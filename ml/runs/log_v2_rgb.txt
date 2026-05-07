@@ -1,0 +1,85 @@
+device: cuda NVIDIA GeForce RTX 4080 Laptop GPU
+train: 40  val: 10
+params: 1.95 M  in_ch=3
+perceptual: off (pure L1)
+epoch   1/80  train=0.0601  val=0.0568  *
+epoch   2/80  train=0.0566  val=0.0401  *
+epoch   3/80  train=0.0291  val=0.0231  *
+epoch   4/80  train=0.0198  val=0.0257
+epoch   5/80  train=0.0189  val=0.0178  *
+epoch   6/80  train=0.0177  val=0.0190
+epoch   7/80  train=0.0159  val=0.0164  *
+epoch   8/80  train=0.0175  val=0.0170
+epoch   9/80  train=0.0173  val=0.0191
+epoch  10/80  train=0.0151  val=0.0210
+epoch  11/80  train=0.0158  val=0.0175
+epoch  12/80  train=0.0157  val=0.0161  *
+epoch  13/80  train=0.0151  val=0.0148  *
+epoch  14/80  train=0.0154  val=0.0159
+epoch  15/80  train=0.0157  val=0.0156
+epoch  16/80  train=0.0160  val=0.0159
+epoch  17/80  train=0.0162  val=0.0150
+epoch  18/80  train=0.0174  val=0.0176
+epoch  19/80  train=0.0145  val=0.0159
+epoch  20/80  train=0.0158  val=0.0180
+epoch  21/80  train=0.0162  val=0.0171
+epoch  22/80  train=0.0154  val=0.0166
+epoch  23/80  train=0.0159  val=0.0166
+epoch  24/80  train=0.0153  val=0.0175
+epoch  25/80  train=0.0148  val=0.0155
+epoch  26/80  train=0.0142  val=0.0159
+epoch  27/80  train=0.0138  val=0.0154
+epoch  28/80  train=0.0134  val=0.0125  *
+epoch  29/80  train=0.0128  val=0.0125
+epoch  30/80  train=0.0140  val=0.0144
+epoch  31/80  train=0.0131  val=0.0132
+epoch  32/80  train=0.0109  val=0.0096  *
+epoch  33/80  train=0.0112  val=0.0131
+epoch  34/80  train=0.0109  val=0.0098
+epoch  35/80  train=0.0102  val=0.0075  *
+epoch  36/80  train=0.0091  val=0.0097
+epoch  37/80  train=0.0083  val=0.0084
+epoch  38/80  train=0.0089  val=0.0081
+epoch  39/80  train=0.0084  val=0.0098
+epoch  40/80  train=0.0080  val=0.0088
+epoch  41/80  train=0.0077  val=0.0087
+epoch  42/80  train=0.0082  val=0.0090
+epoch  43/80  train=0.0080  val=0.0083
+epoch  44/80  train=0.0089  val=0.0084
+epoch  45/80  train=0.0075  val=0.0080
+epoch  46/80  train=0.0086  val=0.0087
+epoch  47/80  train=0.0076  val=0.0097
+epoch  48/80  train=0.0072  val=0.0071  *
+epoch  49/80  train=0.0075  val=0.0069  *
+epoch  50/80  train=0.0072  val=0.0076
+epoch  51/80  train=0.0076  val=0.0082
+epoch  52/80  train=0.0072  val=0.0078
+epoch  53/80  train=0.0074  val=0.0076
+epoch  54/80  train=0.0077  val=0.0068  *
+epoch  55/80  train=0.0078  val=0.0071
+epoch  56/80  train=0.0067  val=0.0079
+epoch  57/80  train=0.0073  val=0.0076
+epoch  58/80  train=0.0072  val=0.0086
+epoch  59/80  train=0.0074  val=0.0086
+epoch  60/80  train=0.0071  val=0.0077
+epoch  61/80  train=0.0067  val=0.0080
+epoch  62/80  train=0.0064  val=0.0077
+epoch  63/80  train=0.0069  val=0.0074
+epoch  64/80  train=0.0070  val=0.0070
+epoch  65/80  train=0.0067  val=0.0067  *
+epoch  66/80  train=0.0071  val=0.0085
+epoch  67/80  train=0.0068  val=0.0078
+epoch  68/80  train=0.0065  val=0.0062  *
+epoch  69/80  train=0.0072  val=0.0076
+epoch  70/80  train=0.0063  val=0.0064
+epoch  71/80  train=0.0064  val=0.0059  *
+epoch  72/80  train=0.0064  val=0.0075
+epoch  73/80  train=0.0065  val=0.0074
+epoch  74/80  train=0.0067  val=0.0068
+epoch  75/80  train=0.0064  val=0.0073
+epoch  76/80  train=0.0057  val=0.0064
+epoch  77/80  train=0.0062  val=0.0068
+epoch  78/80  train=0.0059  val=0.0062
+epoch  79/80  train=0.0063  val=0.0063
+epoch  80/80  train=0.0062  val=0.0058  *
+best val L1: 0.0058  saved: ml\runs\v2_rgb.pt

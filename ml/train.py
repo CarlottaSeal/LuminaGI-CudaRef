@@ -78,16 +78,17 @@ class UNet(nn.Module):
 class DenoiseDataset(Dataset):
     def __init__(self, data_dir, pair_indices, crop=256, gbuffer=False):
         d = pathlib.Path(data_dir)
-        all_names = sorted(f.stem for f in (d / "noisy").glob("*.png"))
+        # only main color frames: stem is all digits (skip *.albedo.png / *.normal.png / *.worldpos.png)
+        all_names = sorted(f.stem for f in (d / "noisy").glob("*.png") if f.stem.isdigit())
         self.pairs = []
         for stem in all_names:
             noisy = d / "noisy" / f"{stem}.png"
             clean = d / "clean" / f"{stem}.png"
             entry = {"noisy": noisy, "clean": clean}
             if gbuffer:
-                entry["albedo"] = d / "clean" / f"{stem}.albedo.png"
-                entry["normal"] = d / "clean" / f"{stem}.normal.png"
-                entry["depth"]  = d / "clean" / f"{stem}.depth.png"
+                entry["albedo"]   = d / "clean" / f"{stem}.albedo.png"
+                entry["normal"]   = d / "clean" / f"{stem}.normal.png"
+                entry["worldpos"] = d / "clean" / f"{stem}.worldpos.png"
             self.pairs.append(entry)
         self.pairs = [self.pairs[i] for i in pair_indices]
         self.crop = crop
@@ -109,14 +110,14 @@ class DenoiseDataset(Dataset):
             clean = clean[y:y + self.crop, x:x + self.crop]
 
         if self.gbuffer:
-            alb = np.asarray(Image.open(e["albedo"]).convert("RGB"), dtype=np.float32) / 255.0
-            nrm = np.asarray(Image.open(e["normal"]).convert("RGB"), dtype=np.float32) / 255.0
-            dep = np.asarray(Image.open(e["depth"]).convert("L"),   dtype=np.float32) / 255.0
+            alb = np.asarray(Image.open(e["albedo"]).convert("RGB"),   dtype=np.float32) / 255.0
+            nrm = np.asarray(Image.open(e["normal"]).convert("RGB"),   dtype=np.float32) / 255.0
+            wp  = np.asarray(Image.open(e["worldpos"]).convert("RGB"), dtype=np.float32) / 255.0
             if cropping:
                 alb = alb[y:y + self.crop, x:x + self.crop]
                 nrm = nrm[y:y + self.crop, x:x + self.crop]
-                dep = dep[y:y + self.crop, x:x + self.crop]
-            stacked = np.concatenate([noisy, alb, nrm, dep[..., None]], axis=2)
+                wp  = wp [y:y + self.crop, x:x + self.crop]
+            stacked = np.concatenate([noisy, alb, nrm, wp], axis=2)
             return (torch.from_numpy(stacked.transpose(2, 0, 1)),
                     torch.from_numpy(clean.transpose(2, 0, 1)))
 
@@ -138,9 +139,9 @@ def main():
     ap.add_argument("--perceptual-weight", type=float, default=0.0,
                     help="weight on VGG perceptual loss (0 = pure L1, default)")
     ap.add_argument("--gbuffer", action="store_true",
-                    help="feed albedo+normal+depth alongside noisy RGB (10ch input)")
+                    help="feed albedo+normal+worldpos alongside noisy RGB (12ch input)")
     args = ap.parse_args()
-    in_ch = 10 if args.gbuffer else 3
+    in_ch = 12 if args.gbuffer else 3
 
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
@@ -149,7 +150,7 @@ def main():
     print("device:", device, torch.cuda.get_device_name(0) if device.type == "cuda" else "")
 
     d = pathlib.Path(args.data_dir)
-    n_total = len(list((d / "noisy").glob("*.png")))
+    n_total = sum(1 for f in (d / "noisy").glob("*.png") if f.stem.isdigit())
     n_val = max(1, int(n_total * args.val_frac))
     rng = np.random.RandomState(args.seed)
     perm = rng.permutation(n_total)

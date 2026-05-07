@@ -21,7 +21,7 @@ void RenderSceneCUDA(const Scene& scene, const Bvh& bvh, const std::string& asse
                      std::vector<uint8_t>& outRGB, int& outW, int& outH,
                      std::vector<uint8_t>* outAlbedo = nullptr,
                      std::vector<uint8_t>* outNormal = nullptr,
-                     std::vector<uint8_t>* outDepth  = nullptr);
+                     std::vector<uint8_t>* outWorldPos = nullptr);
 void RenderSceneCUDASorted(const Scene& scene, const Bvh& bvh, const std::string& assetRoot,
                            int spp, int maxBounces,
                            std::vector<uint8_t>& outRGB, int& outW, int& outH);
@@ -165,12 +165,12 @@ int main(int argc, char** argv)
         {
             const BatchJob& j = jobs[k];
             overwrite_camera(scene, j.cam_pos, j.cam_tgt);
-            std::vector<uint8_t> rgb, alb, nrm, dep; int W = 0, H = 0;
+            std::vector<uint8_t> rgb, alb, nrm, wp; int W = 0, H = 0;
             auto t0 = std::chrono::steady_clock::now();
             RenderSceneCUDA(scene, bvh_batch, assetRoot, j.spp, j.bounces, rgb, W, H,
                             gbuffer ? &alb : nullptr,
                             gbuffer ? &nrm : nullptr,
-                            gbuffer ? &dep : nullptr);
+                            gbuffer ? &wp  : nullptr);
             auto t1 = std::chrono::steady_clock::now();
             std::filesystem::create_directories(std::filesystem::path(j.out_png).parent_path());
             stbi_write_png(j.out_png.c_str(), W, H, 3, rgb.data(), W * 3);
@@ -178,9 +178,9 @@ int main(int argc, char** argv)
             {
                 std::filesystem::path p(j.out_png);
                 std::string stem = (p.parent_path() / p.stem()).string();
-                stbi_write_png((stem + ".albedo.png").c_str(), W, H, 3, alb.data(), W * 3);
-                stbi_write_png((stem + ".normal.png").c_str(), W, H, 3, nrm.data(), W * 3);
-                stbi_write_png((stem + ".depth.png").c_str(),  W, H, 3, dep.data(), W * 3);
+                stbi_write_png((stem + ".albedo.png").c_str(),   W, H, 3, alb.data(), W * 3);
+                stbi_write_png((stem + ".normal.png").c_str(),   W, H, 3, nrm.data(), W * 3);
+                stbi_write_png((stem + ".worldpos.png").c_str(), W, H, 3, wp.data(),  W * 3);
             }
             std::printf("[%zu/%zu] %s  spp=%d  render=%.1f ms\n",
                         k + 1, jobs.size(), j.out_png.c_str(), j.spp,
@@ -197,13 +197,16 @@ int main(int argc, char** argv)
                 std::chrono::duration<double, std::milli>(t1 - t0).count(),
                 bvh.nodes.size());
 
-    std::vector<uint8_t> rgb;
+    std::vector<uint8_t> rgb, alb, nrm, wp;
     int W = 0, H = 0;
     auto t2 = std::chrono::steady_clock::now();
     if (useSort)
         RenderSceneCUDASorted(scene, bvh, assetRoot, spp, bounces, rgb, W, H);
     else
-        RenderSceneCUDA(scene, bvh, assetRoot, spp, bounces, rgb, W, H);
+        RenderSceneCUDA(scene, bvh, assetRoot, spp, bounces, rgb, W, H,
+                        gbuffer ? &alb : nullptr,
+                        gbuffer ? &nrm : nullptr,
+                        gbuffer ? &wp  : nullptr);
     auto t3 = std::chrono::steady_clock::now();
     std::printf("render: %.1f ms (%d x %d)\n",
                 std::chrono::duration<double, std::milli>(t3 - t2).count(), W, H);
@@ -214,5 +217,13 @@ int main(int argc, char** argv)
         return 3;
     }
     std::printf("wrote %s\n", pngPath);
+    if (gbuffer)
+    {
+        std::filesystem::path p(pngPath);
+        std::string stem = (p.parent_path() / p.stem()).string();
+        stbi_write_png((stem + ".albedo.png").c_str(),   W, H, 3, alb.data(), W * 3);
+        stbi_write_png((stem + ".normal.png").c_str(),   W, H, 3, nrm.data(), W * 3);
+        stbi_write_png((stem + ".worldpos.png").c_str(), W, H, 3, wp.data(),  W * 3);
+    }
     return 0;
 }

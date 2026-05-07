@@ -45,12 +45,27 @@ def main():
     ap.add_argument("noisy_png")
     ap.add_argument("gt_png")
     ap.add_argument("checkpoints", nargs="+")
+    ap.add_argument("--save-dir", help="if set, write <ckpt-stem>.denoised.png here")
     args = ap.parse_args()
+    save_dir = pathlib.Path(args.save_dir) if args.save_dir else None
+    if save_dir:
+        save_dir.mkdir(parents=True, exist_ok=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     noisy = np.asarray(Image.open(args.noisy_png).convert("RGB"), dtype=np.float32) / 255.0
     gt    = np.asarray(Image.open(args.gt_png).convert("RGB"), dtype=np.uint8)
+
+    noisy_stem = pathlib.Path(args.noisy_png).with_suffix("")
+    aux12 = None  # built lazily if any ckpt needs it
+    def get_aux12():
+        nonlocal aux12
+        if aux12 is None:
+            alb = np.asarray(Image.open(f"{noisy_stem}.albedo.png").convert("RGB"),   dtype=np.float32) / 255.0
+            nrm = np.asarray(Image.open(f"{noisy_stem}.normal.png").convert("RGB"),   dtype=np.float32) / 255.0
+            wp  = np.asarray(Image.open(f"{noisy_stem}.worldpos.png").convert("RGB"), dtype=np.float32) / 255.0
+            aux12 = np.concatenate([noisy, alb, nrm, wp], axis=2)
+        return aux12
 
     print("| checkpoint | infer ms | PSNR (dB) | SSIM |")
     print("|---|--:|--:|--:|")
@@ -62,20 +77,21 @@ def main():
         ckpt = torch.load(ckpt_path, map_location=device, weights_only=True)
         base  = ckpt.get("base", 32)
         in_ch = ckpt.get("in_ch", 3)
-        if in_ch != 3:
-            print(f"| {pathlib.Path(ckpt_path).name} | — | — | — |  # in_ch={in_ch}, skipped")
-            continue
         model = UNet(base=base, in_ch=in_ch).to(device).eval()
         model.load_state_dict(ckpt["model"])
-        # warmup + best of 3
-        denoise_one(model, device, noisy)
+
+        x = get_aux12() if in_ch == 12 else noisy
+        denoise_one(model, device, x)
         best_dt = float("inf")
         for _ in range(3):
-            out, dt = denoise_one(model, device, noisy)
+            out, dt = denoise_one(model, device, x)
             best_dt = min(best_dt, dt)
         p = psnr(out, gt)
         s = ssim(out, gt, channel_axis=2, data_range=255)
         print(f"| {pathlib.Path(ckpt_path).name} | {best_dt:.1f} | {p:.2f} | {s:.4f} |")
+        if save_dir:
+            stem = pathlib.Path(ckpt_path).stem
+            Image.fromarray(out).save(save_dir / f"{stem}.denoised.png")
 
 
 if __name__ == "__main__":

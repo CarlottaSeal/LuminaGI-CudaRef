@@ -110,8 +110,18 @@ closes most of the gap to the 256-spp reference.
 and epoch sweeps, including a late-training Adam divergence at epoch 83 of
 a 120-epoch run) in [`docs/lr_sweep.md`](docs/lr_sweep.md) and
 [`docs/epoch_sweep.md`](docs/epoch_sweep.md). VGG perceptual loss was
-tried at three weights and regressed both PSNR and SSIM — write-up in
-[`docs/perceptual_sweep.md`](docs/perceptual_sweep.md).
+tried at three weights and regressed both PSNR and SSIM
+([`docs/perceptual_sweep.md`](docs/perceptual_sweep.md)). Aux-input
+G-buffer (albedo + normal + worldpos, channel set matching LuminaGI's
+deferred path) also regressed both metrics on this 50-pose dataset
+([`docs/gbuffer_sweep.md`](docs/gbuffer_sweep.md)).
+
+| Albedo | Normal `(n+1)/2` | Worldpos (AABB-normalised) |
+|---|---|---|
+| ![albedo](docs/gbuffer_albedo.png) | ![normal](docs/gbuffer_normal.png) | ![worldpos](docs/gbuffer_worldpos.png) |
+
+*Primary-hit G-buffer kernel output at the held-out camera. Channel
+set matches LuminaGI's deferred slots `t200/201/203`.*
 
 Scripts: [`ml/gen_dataset.py`](ml/gen_dataset.py) →
 [`ml/train.py`](ml/train.py) → [`tools/denoise.py`](tools/denoise.py).
@@ -181,7 +191,7 @@ Four files under `SD/Engine` and `SD/LuminaGI`:
 - [x] Ray sort between bounces ([`--sort`](docs/profile_analysis.md#ray-sort-between-bounces--measured-kept-off); implemented, measured +50% slower, kept as a toggle)
 - [x] ONNX export (opset 17, dynamic N/H/W, ORT CUDA EP bitwise parity vs PyTorch)
 - [x] TensorRT FP16 engine (2.5× speedup, identical PNG output)
-- [x] Primary-hit G-buffer kernel (albedo / normal / depth, fed back into the UNet input)
+- [x] Primary-hit G-buffer kernel (albedo / normal / worldpos, channel set matches LuminaGI engine; trained 12-ch UNet, regressed metrics — see `docs/gbuffer_sweep.md`)
 - [x] L2 persisting-cache window for BVH (`CUDAREF_L2_PIN=1`, opt-in env var)
 - [ ] Binary scene format (JSON parse is 12 s)
 - [ ] Variance-aware adaptive sampling
@@ -240,6 +250,7 @@ docs/
   lr_sweep.md           lr=5e-4/1e-3/2e-3 comparison
   epoch_sweep.md        epoch=40/80/120 + Adam late-divergence note
   perceptual_sweep.md   λ=0.05/0.1/0.2 negative result + 3 candidate causes
+  gbuffer_sweep.md      12-ch aux input (albedo+normal+worldpos) negative result
   onnx_export.md        ONNX / TRT parity table + CUDA-12 DLL pinning trick
   ada_microarch.md      SM 8.9 cheatsheet
   accumulate.ncu-rep    raw Nsight Compute report (open in ncu-ui)

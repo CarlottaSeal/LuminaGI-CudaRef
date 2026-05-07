@@ -17,10 +17,14 @@ scenes/manual_*.json
 
 # ML datasets are regeneratable via ml/gen_dataset.py; keep batch.txt as the
 # recipe, not the PNG pairs. Trained checkpoints and eval samples stay.
-ml/data/noisy/
-ml/data/clean/
-!ml/data/batch.txt
+ml/data*/noisy/
+ml/data*/clean/
+!ml/data*/batch.txt
 
 # TensorRT engines are GPU-specific; keep .onnx as the portable artifact.
 *.trt
+
+# Held-out eval renders (regeneratable from cuda_ref.exe + a scene.json);
+# pull a specific PNG into docs/ if you want it in the repo.
+ml/eval_v2/
 
