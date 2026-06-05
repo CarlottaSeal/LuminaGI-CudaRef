@@ -28,7 +28,9 @@ def main():
     in_ch = ckpt.get("in_ch", 3)
     if in_ch != 3:
         sys.exit(f"checkpoint expects {in_ch}-ch input; not supported by this script")
-    model = UNet(base=base, in_ch=in_ch).to(device).eval()
+    conv_type = ckpt.get("conv_type", "plain")
+    scale = ckpt.get("scale", 1)
+    model = UNet(base=base, in_ch=in_ch, conv_type=conv_type, scale=scale).to(device).eval()
     model.load_state_dict(ckpt["model"])
 
     img = np.asarray(Image.open(args.noisy_png).convert("RGB"), dtype=np.float32) / 255.0

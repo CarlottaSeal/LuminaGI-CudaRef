@@ -8,6 +8,7 @@ import torch
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "ml"))
 from train import UNet  # noqa: E402
+from ecb import convert_ecb_to_plain  # noqa: E402
 
 
 def main():
@@ -25,8 +26,12 @@ def main():
     ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
     base  = ckpt.get("base", 32)
     in_ch = ckpt.get("in_ch", 3)
-    model = UNet(base=base, in_ch=in_ch).eval()
+    conv_type = ckpt.get("conv_type", "plain")
+    scale = ckpt.get("scale", 1)
+    model = UNet(base=base, in_ch=in_ch, conv_type=conv_type, scale=scale).eval()
     model.load_state_dict(ckpt["model"])
+    if conv_type == "ecb":
+        convert_ecb_to_plain(model)  # fold branches to single 3x3 so they don't enter the graph
 
     dummy = torch.zeros(1, in_ch, args.height, args.width)
 
@@ -44,7 +49,8 @@ def main():
     )
 
     sz = pathlib.Path(args.out_onnx).stat().st_size / 1e6
-    print(f"exported: {args.out_onnx}  ({sz:.2f} MB, opset {args.opset}, base={base}, in_ch={in_ch})")
+    print(f"exported: {args.out_onnx}  ({sz:.2f} MB, opset {args.opset}, base={base}, "
+          f"in_ch={in_ch}, conv={conv_type}, scale={scale})")
 
 
 if __name__ == "__main__":

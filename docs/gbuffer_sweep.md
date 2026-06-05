@@ -50,11 +50,15 @@ gap shows up in the diff heatmap as slightly higher mean abs diff
 
 Three reasons, in order of suspicion:
 
-1. **Dataset is too small for the input adapter.** First-conv weights
+1. ~~**Dataset is too small for the input adapter.**~~ First-conv weights
    went from 3·32·9 = 864 to 12·32·9 = 3456 — 4× the parameters in the
    layer that has to learn what to do with the new channels. With 40
    train pairs, that's not constrained enough to learn aux integration
    from scratch.
+   *Update: tested directly in [`v3_sweep.md`](v3_sweep.md). At 120
+   train pairs / 1024-spp clean / AdamW+cos+clip, the G-buffer variant
+   still regressed (−1.17 dB vs same-setup RGB-only, larger gap than
+   the −0.81 dB here). This hypothesis is no longer supported.*
 
 2. **Aux channels are noise-free, the model overweights them.** Albedo
    / normal / worldpos at primary hit are deterministic (1-spp suffices,

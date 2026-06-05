@@ -109,12 +109,18 @@ closes most of the gap to the 256-spp reference.
 [`docs/denoiser.md`](docs/denoiser.md). Hyperparameter sanity checks (lr
 and epoch sweeps, including a late-training Adam divergence at epoch 83 of
 a 120-epoch run) in [`docs/lr_sweep.md`](docs/lr_sweep.md) and
-[`docs/epoch_sweep.md`](docs/epoch_sweep.md). VGG perceptual loss was
+[`docs/epoch_sweep.md`](docs/epoch_sweep.md). Scaling the dataset to
+150 poses / 1024-spp clean + an `AdamW + cosine + grad-clip` optimizer
+upgrade adds +0.91 dB / +0.013 SSIM over the v2 baseline, with a clean
+ablation isolating data vs optimizer vs EMA contribution
+([`docs/v3_sweep.md`](docs/v3_sweep.md)). VGG perceptual loss was
 tried at three weights and regressed both PSNR and SSIM
 ([`docs/perceptual_sweep.md`](docs/perceptual_sweep.md)). Aux-input
 G-buffer (albedo + normal + worldpos, channel set matching LuminaGI's
 deferred path) also regressed both metrics on this 50-pose dataset
-([`docs/gbuffer_sweep.md`](docs/gbuffer_sweep.md)).
+([`docs/gbuffer_sweep.md`](docs/gbuffer_sweep.md)), and re-regressed by
+a *larger* margin on the 150-pose / 1024-spp follow-up — refuting the
+"too few pairs" hypothesis ([`docs/v3_sweep.md`](docs/v3_sweep.md)).
 
 | Albedo | Normal `(n+1)/2` | Worldpos (AABB-normalised) |
 |---|---|---|
@@ -242,7 +248,7 @@ tools/
   eval_checkpoints.py PSNR/SSIM table over a list of .pt files
 ml/
   gen_dataset.py      roll random cameras, render (noisy, clean) pairs via --batch (--gbuffer optional)
-  train.py            UNet training (PyTorch); --perceptual-weight, --gbuffer
+  train.py            UNet training (PyTorch); --perceptual-weight, --gbuffer, --optim adamw_cosine
   runs/               trained checkpoints
 docs/
   profile_analysis.md   measured findings, full metric tables
@@ -251,6 +257,7 @@ docs/
   epoch_sweep.md        epoch=40/80/120 + Adam late-divergence note
   perceptual_sweep.md   λ=0.05/0.1/0.2 negative result + 3 candidate causes
   gbuffer_sweep.md      12-ch aux input (albedo+normal+worldpos) negative result
+  v3_sweep.md           150-pose / 1024-spp + AdamW+cos+clip; +0.91 dB win, EMA(0.999) debug, G-buffer re-negative
   onnx_export.md        ONNX / TRT parity table + CUDA-12 DLL pinning trick
   ada_microarch.md      SM 8.9 cheatsheet
   accumulate.ncu-rep    raw Nsight Compute report (open in ncu-ui)

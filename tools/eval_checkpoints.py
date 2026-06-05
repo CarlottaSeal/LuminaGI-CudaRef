@@ -77,7 +77,9 @@ def main():
         ckpt = torch.load(ckpt_path, map_location=device, weights_only=True)
         base  = ckpt.get("base", 32)
         in_ch = ckpt.get("in_ch", 3)
-        model = UNet(base=base, in_ch=in_ch).to(device).eval()
+        conv_type = ckpt.get("conv_type", "plain")
+        scale = ckpt.get("scale", 1)
+        model = UNet(base=base, in_ch=in_ch, conv_type=conv_type, scale=scale).to(device).eval()
         model.load_state_dict(ckpt["model"])
 
         x = get_aux12() if in_ch == 12 else noisy
