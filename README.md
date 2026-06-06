@@ -104,8 +104,9 @@ closes most of the gap to the 256-spp reference.
 | **8 spp + UNet** | **597 ms** | **42.04 dB** | **0.964** |
 | 256 spp naive | 13,400 ms | 49.57 dB | 0.991 |
 
-~22× faster than the 256-spp baseline for ~80% of its PSNR gain over raw
-8 spp. Full setup + training recipe + caveats in
+~22× faster than the 256-spp baseline, lifting PSNR +7.5 dB (34.5 → 42.0)
+— about half the PSNR gap to the 256-spp reference and ~85% of the SSIM
+gap. Full setup + training recipe + caveats in
 [`docs/denoiser.md`](docs/denoiser.md). Hyperparameter sanity checks (lr
 and epoch sweeps, including a late-training Adam divergence at epoch 83 of
 a 120-epoch run) in [`docs/lr_sweep.md`](docs/lr_sweep.md) and

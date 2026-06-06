@@ -31,9 +31,11 @@ training distribution:
 | **8 spp + UNet denoise** | 400 ms | 197 ms | **597 ms** | **42.04 dB** | **0.964** | 1.39 / 255 |
 | 256 spp (naive baseline) | 13,400 ms | — | 13,400 ms | 49.57 dB | 0.991 | 0.51 / 255 |
 
-The denoiser closes roughly 80% of the PSNR gap between 8 spp and the
-256-spp baseline, at **~22× lower total time**. SSIM 0.964 reads as
-visually equivalent to the 256-spp version on a 1080p display.
+The denoiser lifts PSNR by +7.5 dB (34.5 → 42.0), which closes roughly
+half the PSNR gap to the 256-spp baseline (7.5 of 15.05 dB) and about
+85% of the SSIM gap ((0.964−0.815)/(0.991−0.815)), at **~22× lower total
+time**. SSIM 0.964 reads as visually equivalent to the 256-spp version
+on a 1080p display.
 
 ## Pipeline
 
