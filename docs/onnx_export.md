@@ -64,9 +64,14 @@ The fix in `denoise_onnx.py` is local-only — no system CUDA changes:
 wins the load race; the CUDA-12 wheels then back-fill anything ORT
 needs that PyTorch's environment did not provide.
 
+## TensorRT (done)
+
+The FP16 TensorRT engine is now built and benchmarked: **18.4 ms /
+inference (~2.5× faster than PyTorch CUDA's 46 ms), max abs diff 5.72e-04
+vs PyTorch FP32**, visually identical at the PNG quantisation floor. Build
+and run scripts: `tools/build_trt_engine.py` and `tools/denoise_trt.py`;
+full backend comparison table in the README.
+
 ## Out of scope
 
-- TensorRT engine build — the obvious next step. ONNX → trtexec would
-  almost certainly drop CUDA-EP latency further (FP16, fused kernels)
-  but adds a second build dependency.
-- Quantisation (INT8). Not worth doing at 56 ms / 1.95 M params.
+- Quantisation (INT8). Not worth doing at 18 ms / 1.95 M params.

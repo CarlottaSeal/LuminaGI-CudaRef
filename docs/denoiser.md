@@ -54,10 +54,11 @@ cuda_ref (8 spp, ~400 ms)  →  noisy.png  →  denoise.py (UNet, 197 ms)  →  
   reprojection). Out of scope for a one-scene offline reference.
 - **Kernel-prediction architecture** (vs direct prediction) — edges
   better preserved, but larger code footprint.
-- **TensorRT engine** — the model is now exported to ONNX
-  (see `onnx_export.md`); ONNX Runtime CUDA EP runs at 56 ms vs PyTorch
-  CUDA's 46 ms with bitwise-identical output. A `trtexec` build for
-  FP16 would drop further but adds a second build dependency.
+- **TensorRT engine** — *done since this section was written.* The ONNX
+  model now also builds an **FP16 TensorRT engine at 18.4 ms (~2.5× faster
+  than PyTorch CUDA's 46 ms)**, output indistinguishable at the PNG
+  quantisation floor. See the inference-backend table in the README and
+  `onnx_export.md`.
 - **Generalisation to other scenes** — trained on 50 poses in one
   indoor-room scene. A scene-independent denoiser needs a much larger,
   more varied training set (this is what production denoisers do).
