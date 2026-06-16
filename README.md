@@ -94,11 +94,14 @@ Two silent bugs the diff pipeline has caught:
 Carlo noise. A small UNet trained on (8-spp noisy, 256-spp clean) pairs
 closes most of the gap to the 256-spp reference.
 
-The model is a **4-level U-Net, 32 base channels, ~1.9 M parameters**,
-trained to predict a **residual on the noisy input**
-(`out = clamp(input + UNet(input), 0, 1)`) under an **L1 loss** — 50 camera
-poses × (noisy, clean), 256×256 random crops, Adam lr=1e-3, 80 epochs,
-best-checkpoint on validation L1. Full recipe and sweeps in
+The model is a **4-level U-Net, 32 base channels, ~1.9 M parameters**, and it
+predicts a **residual on the noisy input** (`out = clamp(input + UNet(input), 0, 1)`)
+under an **L1 loss**. The training data is **50 camera poses** of (noisy, clean) pairs
+fed as **256×256 random crops** for **80 epochs**, keeping the **best validation-L1
+checkpoint** because a long run can diverge late. The baseline optimiser is Adam at
+lr 1e-3; the v3 recipe upgrades to **AdamW + a cosine schedule + gradient clipping + a
+weight EMA**, and with 1024-spp clean targets that adds +0.91 dB (ablated as data
++0.68 / optimiser +0.21 / EMA +0.02). Full recipe and sweeps in
 [`docs/denoiser.md`](docs/denoiser.md).
 
 | 8 spp (noisy) | 8 spp + UNet denoise | 1024 spp ground truth |
