@@ -1,5 +1,7 @@
 # LuminaGI-CudaRef
 
+**English** | [简体中文](README.zh-CN.md)
+
 CUDA path tracer used as a reference for [LuminaGI](https://github.com/CarlottaSeal),
 a DX12 GI engine with screen probes, voxel lighting, and a surface card cache.
 LuminaGI's GI is approximate; this renderer is brute-force so its output gives
