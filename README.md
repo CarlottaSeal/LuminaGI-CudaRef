@@ -172,8 +172,8 @@ python tools/denoise_trt.py        ml/runs/denoiser.trt  noisy.png  out.png
 ## Optimizations
 
 **`__launch_bounds__(256, 4)`** — forces register budget to 64/thread (from 76),
-takes theoretical occupancy 50% → 75% (capped at 66.7% by shmem). Measured
-~5–10% kernel speedup; kept in-code.
+takes theoretical occupancy 50% → 66.7% (register-limited: 64 regs/thread fills exactly 4 blocks/SM). Measured
+~5–10% kernel speedup; kept in-code. Achieved occupancy runs ~7% under theoretical (46.6% vs 50%, 61.8% vs 66.7%): a block holds its slot until all its warps finish and rays terminate unevenly (branch efficiency 83.6%, 4.49M divergent branches/launch), plus launch ramp-up/tail.
 
 **Shmem BVH top-level cache** (`-DBVH_USE_SHMEM`) — BFS relayout puts the top
 255 nodes first; they get loaded into `__shared__` per block. A/B at 64 spp /

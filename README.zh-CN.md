@@ -104,7 +104,7 @@ TRT FP16 比 PyTorch CUDA 快约 **2.5×**、PNG 量化下看不出差别。
 
 ## Optimizations（测了才留 / 测了才砍——诚实招牌）
 
-- **`__launch_bounds__(256, 4)`**：把 register 从 76 压到 64/thread，理论 occupancy 50%→75%（被 shmem 卡在 66.7%），实测约 5–10% 提速——留下。
+- **`__launch_bounds__(256, 4)`**：把 register 从 76 压到 64/thread，理论 occupancy 50%→66.7%（寄存器限：64 寄存器/线程正好塞满 4 块/SM），实测约 5–10% 提速——留下。（实测 occupancy 46.6→61.8% 比理论低约 7%：block 要等所有 warp 跑完才释放，ray 终止不齐——branch efficiency 83.6%、每次 4.49M divergent branch——再加 launch 头尾没坐满。）
 - **Shmem BVH top-level cache（`-DBVH_USE_SHMEM`）**：BFS relayout 把树顶 255 个节点排前面、每个 block load 进 `__shared__`。A/B（64spp/2bounce，各 3 次）：**3336ms 关 vs 3343ms 开**——没差别，Ada 的 40MB L2 已经把这些节点常驻。留成可开关。（一个实现细节：取节点用**显式 if/else** 在 shared 和 global 之间选、不用三目——对两个不同地址空间的指针做三目会逼 nvcc 走 generic address space，代码注释里记着这会实测拖慢 load。）
 - **Ray sort between bounces（`--sort`）**：ncu 的头号 lead——按方向 Morton 给 ray 排序、想降那 70% 的 uncoalesced 访问。A/B：**2950ms 关 vs 4410ms 开（慢 50%）**，输出一致（两边都 21.8dB）。同一个原因：L2 本来就 hold 住了重复流量，而排序反而加了 thrust + atomicAdd + kernel launch 开销。实现留在树里、behind flag。
 

@@ -89,7 +89,7 @@ regs/thread. Compiler output (`ptxas -Xptxas=-v`):
 | Stack frame | 256 B | 288 B |
 | Spill stores | 0 B | 76 B |
 | Spill loads | 0 B | 56 B |
-| Theoretical occupancy | 50% | 75% |
+| Theoretical occupancy | 50% | 66.7% |
 
 The +32 B of stack and ~132 B/thread spill traffic are the compiler's cost
 of squeezing into 64 regs. The tradeoff is favorable: real kernel time drops
@@ -119,9 +119,9 @@ SM throughput dropped because the same compute is now spread across more warps
 that each individually stall more on memory; the kernel didn't get less efficient,
 the bottleneck just became more obviously L2 bandwidth.
 
-Theoretical occupancy stopped at 66.7% rather than the register-math-optimal
-75% because the new limiter is **shared memory per block** (10.2 KB × 4 blocks
-= 40.8 KB per SM). If occupancy mattered more than it does here, the next
+Theoretical occupancy is 66.7%, register-limited: 64 regs/thread × 256 =
+16,384 regs/block, and 4 blocks exactly fill the 65,536-register file, so no
+5th block fits (shmem isn't the limiter — 10.2 KB/block allows ~10 blocks). If occupancy mattered more than it does here, the next
 step would be shrinking the BVH shmem cache or eliminating it entirely.
 Since the kernel is already L2-bound, the real next optimization is reducing
 L2 traffic via ray coalescence — not chasing more occupancy.
